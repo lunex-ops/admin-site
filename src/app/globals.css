@@ -1,26 +1,480 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* =========================================================
+   LUNEX ADMIN DESIGN SYSTEM
+   ========================================================= */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* -------------------------------------------------------
+     Brand Palette
+     ------------------------------------------------------- */
+
+  --primary: #2563eb;
+  --secondary: #64748b;
+  --tertiary: #bc4800;
+  --neutral: #0f172a;
+
+  /* -------------------------------------------------------
+     Semantic Colors — Light
+     ------------------------------------------------------- */
+
+  --background: #f8fafc;
+  --foreground: #0f172a;
+
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  --input: #ffffff;
+  --input-foreground: #0f172a;
+
+  --ring: #2563eb;
+
+  /* -------------------------------------------------------
+     Shadcn Semantic Tokens
+     ------------------------------------------------------- */
+
+  --primary-foreground: #ffffff;
+
+  --secondary-foreground: #0f172a;
+
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  /* -------------------------------------------------------
+     States
+     ------------------------------------------------------- */
+
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+
+  --danger: #dc2626;
+  --danger-foreground: #ffffff;
+
+  /* -------------------------------------------------------
+     Charts
+     ------------------------------------------------------- */
+
+  --chart-1: #2563eb;
+  --chart-2: #64748b;
+  --chart-3: #bc4800;
+  --chart-4: #16a34a;
+  --chart-5: #d97706;
+
+  /* -------------------------------------------------------
+     Sidebar
+     ------------------------------------------------------- */
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #ffffff;
+
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #2563eb;
+
+  /* -------------------------------------------------------
+     Typography
+     ------------------------------------------------------- */
+
+  --font-headline: var(--font-space-grotesk);
+  --font-body: var(--font-inter);
+  --font-label: var(--font-inter);
+
+  /* -------------------------------------------------------
+     Geometry
+     ------------------------------------------------------- */
+
+  --radius: 0px;
+
+  /* -------------------------------------------------------
+     Scrollbar
+     ------------------------------------------------------- */
+
+  --scrollbar-track: #f1f5f9;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #2563eb;
+
+  /* -------------------------------------------------------
+     Selection
+     ------------------------------------------------------- */
+
+  --selection-background: #2563eb;
+  --selection-foreground: #ffffff;
 }
 
+/* =========================================================
+   TAILWIND THEME
+   ========================================================= */
+
 @theme inline {
+  /* -------------------------------------------------------
+     Brand
+     ------------------------------------------------------- */
+
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-tertiary: var(--tertiary);
+  --color-neutral: var(--neutral);
+
+  /* -------------------------------------------------------
+     Semantic
+     ------------------------------------------------------- */
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-input: var(--input);
+  --color-input-foreground: var(--input-foreground);
+
+  --color-ring: var(--ring);
+
+  /* -------------------------------------------------------
+     Shadcn
+     ------------------------------------------------------- */
+
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  /* -------------------------------------------------------
+     States
+     ------------------------------------------------------- */
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+
+  /* -------------------------------------------------------
+     Charts
+     ------------------------------------------------------- */
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* -------------------------------------------------------
+     Sidebar
+     ------------------------------------------------------- */
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* -------------------------------------------------------
+     Typography
+     ------------------------------------------------------- */
+
+  --font-headline: var(--font-space-grotesk);
+  --font-sans: var(--font-inter);
+  --font-body: var(--font-inter);
+  --font-label: var(--font-inter);
+  --font-mono: var(--font-inter);
+
+  /* -------------------------------------------------------
+     Geometry
+     ------------------------------------------------------- */
+
+  --radius-none: 0px;
+
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
 }
+
+/* =========================================================
+   DARK MODE
+   ========================================================= */
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: dark;
+
+    --background: #0f172a;
+    --foreground: #f8fafc;
+
+    --card: #111c30;
+    --card-foreground: #f8fafc;
+
+    --popover: #111c30;
+    --popover-foreground: #f8fafc;
+
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+
+    --border: #263449;
+    --border-strong: #475569;
+
+    --input: #111c30;
+    --input-foreground: #f8fafc;
+
+    --ring: #3b82f6;
+
+    --primary-foreground: #ffffff;
+    --secondary-foreground: #f8fafc;
+
+    --accent: #1e293b;
+    --accent-foreground: #f8fafc;
+
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+
+    --sidebar: #111c30;
+    --sidebar-foreground: #f8fafc;
+
+    --sidebar-primary: #3b82f6;
+    --sidebar-primary-foreground: #ffffff;
+
+    --sidebar-accent: #1e293b;
+    --sidebar-accent-foreground: #f8fafc;
+
+    --sidebar-border: #263449;
+    --sidebar-ring: #3b82f6;
+
+    --success: #22c55e;
+    --success-foreground: #052e16;
+
+    --warning: #f59e0b;
+    --warning-foreground: #451a03;
+
+    --danger: #ef4444;
+    --danger-foreground: #450a0a;
+
+    --scrollbar-track: #111c30;
+    --scrollbar-thumb: #475569;
+    --scrollbar-thumb-hover: #3b82f6;
   }
 }
 
-body {
+/* =========================================================
+   GLOBAL BASE
+   ========================================================= */
+
+html {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  scrollbar-gutter: stable;
+}
+
+body {
+  min-height: 100vh;
+
+  background: var(--background);
+  color: var(--foreground);
+
+  font-family: var(--font-body);
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =========================================================
+   TYPOGRAPHY
+   ========================================================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-headline);
+  letter-spacing: -0.025em;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-body);
+}
+
+label,
+[data-label] {
+  font-family: var(--font-label);
+}
+
+/* =========================================================
+   SQUARE GEOMETRY
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+  border-radius: 0;
+}
+
+/* =========================================================
+   TEXT SELECTION
+   ========================================================= */
+
+::selection {
+  background: var(--selection-background);
+  color: var(--selection-foreground);
+}
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border: 2px solid var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* =========================================================
+   FORM CONTROLS
+   ========================================================= */
+
+input,
+textarea,
+select {
+  border: 1px solid var(--border-strong);
+  background: var(--input);
+  color: var(--input-foreground);
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted-foreground);
+}
+
+input:hover,
+textarea:hover,
+select:hover {
+  border-color: var(--secondary);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+/* =========================================================
+   TABLES
+   ========================================================= */
+
+table {
+  border-collapse: collapse;
+}
+
+th {
+  font-family: var(--font-label);
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* =========================================================
+   SHADCN BASE
+   ========================================================= */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html {
+    @apply font-sans;
+  }
 }
