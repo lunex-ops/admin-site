@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import QueryProvider from "@/providers/QueryProvider";
+import { Toaster } from "@/components/ui/toast";
 
-const spaceGroteskHeading = Space_Grotesk({subsets:['latin'],variable:'--font-heading'});
+const spaceGroteskHeading = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-heading",
+});
 
 const inter = Inter({
   variable: "--font-inter",
@@ -24,9 +29,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", inter.variable, spaceGrotesk.variable, spaceGroteskHeading.variable)}
+      className={cn(
+        "h-full",
+        "antialiased",
+        inter.variable,
+        spaceGrotesk.variable,
+        spaceGroteskHeading.variable,
+      )}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <QueryProvider>
+          {children}
+          <Toaster />
+        </QueryProvider>
+      </body>
     </html>
   );
 }
