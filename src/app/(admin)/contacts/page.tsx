@@ -16,7 +16,7 @@ const ContactsPage = () => {
         <h1 className="text-3xl font-semibold">Contacts</h1>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          Manage your contacts and leads.
+          Manage your contacts.
         </p>
       </div>
 

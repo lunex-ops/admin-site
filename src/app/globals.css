@@ -407,6 +407,10 @@ label,
    FORM CONTROLS
    ========================================================= */
 
+button {
+  cursor: pointer;
+}
+
 input,
 textarea,
 select {

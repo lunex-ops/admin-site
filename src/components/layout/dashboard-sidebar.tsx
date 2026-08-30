@@ -6,6 +6,8 @@ import {
   LogOut,
   Settings,
   Users,
+  User,
+  LayoutTemplate,
   FileCode,
 } from "lucide-react";
 
@@ -44,9 +46,19 @@ const navigation = [
     icon: Users,
   },
   {
+    title: "Users",
+    href: "/users",
+    icon: User,
+  },
+  {
     title: "Projects",
     href: "/projects",
     icon: FileCode,
+  },
+  {
+    title: "Blogs",
+    href: "/blogs",
+    icon: LayoutTemplate,
   },
 ];
 

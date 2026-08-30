@@ -1,6 +1,6 @@
-import { Settings } from "lucide-react";
+import { Users } from "lucide-react";
 
-const SettingsPage = () => {
+const UsersPage = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -9,10 +9,10 @@ const SettingsPage = () => {
           Workspace
         </p>
 
-        <h1 className="text-3xl font-semibold">Settings</h1>
+        <h1 className="text-3xl font-semibold">Users</h1>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          Manage your workspace preferences and configuration.
+          Manage users and workspace access.
         </p>
       </div>
 
@@ -20,19 +20,18 @@ const SettingsPage = () => {
       <div className="flex min-h-105 items-center justify-center border border-border bg-card p-8">
         <div className="max-w-md text-center">
           <div className="mx-auto mb-6 flex size-14 items-center justify-center border border-border bg-muted/50">
-            <Settings className="size-6 text-muted-foreground" />
+            <Users className="size-6 text-muted-foreground" />
           </div>
 
           <div className="mb-3 inline-flex items-center border border-border px-3 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Coming Soon
           </div>
 
-          <h2 className="text-2xl font-semibold">Settings are on the way</h2>
+          <h2 className="text-2xl font-semibold">User management is coming</h2>
 
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            We&apos;re working on workspace settings and configuration options.
-            You&apos;ll soon be able to manage your preferences, account
-            settings, and workspace configuration from here.
+            We&apos;re working on user management tools that will let you manage
+            users, roles, permissions, and workspace access.
           </p>
         </div>
       </div>
@@ -40,4 +39,4 @@ const SettingsPage = () => {
   );
 };
 
-export default SettingsPage;
+export default UsersPage;
