@@ -32,7 +32,9 @@ const ContactsPage = () => {
         </div>
       )}
 
-      {!isLoading && !isError && <ContactsTable data={data?.data ?? []} />}
+      {!isLoading && !isError && (
+        <ContactsTable data={data?.data?.contacts ?? []} />
+      )}
     </div>
   );
 };

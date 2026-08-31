@@ -2,13 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import {
+  ContactRound,
   LayoutDashboard,
   LogOut,
   Settings,
-  Users,
-  User,
-  LayoutTemplate,
-  FileCode,
+  ShieldAlert,
+  UserRoundPlus,
+  UsersRound,
 } from "lucide-react";
 
 import {
@@ -43,22 +43,22 @@ const navigation = [
   {
     title: "Contacts",
     href: "/contacts",
-    icon: Users,
+    icon: ContactRound,
+  },
+  {
+    title: "Leads",
+    href: "/leads",
+    icon: UserRoundPlus,
+  },
+  {
+    title: "Spam",
+    href: "/spam",
+    icon: ShieldAlert,
   },
   {
     title: "Users",
     href: "/users",
-    icon: User,
-  },
-  {
-    title: "Projects",
-    href: "/projects",
-    icon: FileCode,
-  },
-  {
-    title: "Blogs",
-    href: "/blogs",
-    icon: LayoutTemplate,
+    icon: UsersRound,
   },
 ];
 
@@ -112,7 +112,7 @@ export function DashboardSidebar() {
                       tooltip={item.title}
                       onClick={() => router.push(item.href)}
                     >
-                      <Icon />
+                      <Icon className="size-4" />
                       <span>{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -144,16 +144,13 @@ export function DashboardSidebar() {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent side="top" align="start" className="w-56">
-            {/* User information */}
             <div className="px-2 py-2">
               <p className="text-sm font-medium">John Doe</p>
-
               <p className="text-xs text-muted-foreground">john@example.com</p>
             </div>
 
             <DropdownMenuSeparator />
 
-            {/* Settings */}
             <DropdownMenuItem onClick={() => router.push("/settings")}>
               <Settings />
               <span>Settings</span>
@@ -161,7 +158,6 @@ export function DashboardSidebar() {
 
             <DropdownMenuSeparator />
 
-            {/* Logout */}
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
               <span>Log out</span>

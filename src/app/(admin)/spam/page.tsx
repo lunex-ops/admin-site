@@ -1,6 +1,6 @@
 import { FolderKanban } from "lucide-react";
 
-const ProjectsPage = () => {
+const SpamPage = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -40,4 +40,4 @@ const ProjectsPage = () => {
   );
 };
 
-export default ProjectsPage;
+export default SpamPage;
