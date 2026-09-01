@@ -1,6 +1,6 @@
 "use client";
 
-import { SpamsTable } from "@/components/spams/spams-table";
+import { SpamsTable } from "@/components/tables/spams-table";
 import { useSpams } from "@/hooks/apis/useSpams";
 
 const SpamsPage = () => {

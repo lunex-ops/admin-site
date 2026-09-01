@@ -1,6 +1,6 @@
 "use client";
 
-import { ContactsTable } from "@/components/contacts/contacts-table";
+import { ContactsTable } from "@/components/tables/contacts-table";
 import { useContacts } from "@/hooks/apis/useContacts";
 
 const ContactsPage = () => {

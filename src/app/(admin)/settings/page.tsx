@@ -1,41 +1,563 @@
-import { Settings } from "lucide-react";
+"use client";
+
+import { useEffect } from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { RotateCcw, Save, Settings2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "@/components/ui/toast";
+
+import {
+  useSettings,
+  useUpdateSettings,
+  type UpdateSettingsInput,
+} from "@/hooks/apis/useSettings";
+
+/* -------------------------------------------------------------------------- */
+/*                                Validation                                  */
+/* -------------------------------------------------------------------------- */
+
+const settingsSchema = z.object({
+  agencyName: z
+    .string()
+    .trim()
+    .max(100, "Agency name must be 100 characters or less")
+    .optional()
+    .or(z.literal("")),
+
+  agencyEmail: z
+    .string()
+    .trim()
+    .email("Please enter a valid email address")
+    .max(255, "Email must be 255 characters or less")
+    .optional()
+    .or(z.literal("")),
+
+  agencyPhone: z
+    .string()
+    .trim()
+    .max(30, "Phone number must be 30 characters or less")
+    .optional()
+    .or(z.literal("")),
+
+  websiteUrl: z
+    .string()
+    .trim()
+    .url("Please enter a valid website URL")
+    .max(500, "Website URL must be 500 characters or less")
+    .optional()
+    .or(z.literal("")),
+
+  timezone: z
+    .string()
+    .trim()
+    .min(1, "Timezone is required")
+    .max(100, "Timezone must be 100 characters or less"),
+
+  currency: z
+    .string()
+    .trim()
+    .min(3, "Currency must be 3 characters")
+    .max(3, "Currency must be 3 characters")
+    .regex(/^[A-Za-z]{3}$/, "Currency must be a 3-letter code"),
+});
+
+type SettingsFormValues = z.infer<typeof settingsSchema>;
+
+/* -------------------------------------------------------------------------- */
+/*                              Settings Page                                 */
+/* -------------------------------------------------------------------------- */
 
 const SettingsPage = () => {
+  const { data, isLoading, isError } = useSettings();
+
+  const { mutate: updateSettings, isPending: isUpdating } = useUpdateSettings();
+
+  const settings = data?.data?.settings;
+
+  /* ------------------------------------------------------------------------ */
+  /*                                Form                                      */
+  /* ------------------------------------------------------------------------ */
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isDirty },
+  } = useForm<SettingsFormValues>({
+    resolver: zodResolver(settingsSchema),
+
+    defaultValues: {
+      agencyName: "",
+      agencyEmail: "",
+      agencyPhone: "",
+      websiteUrl: "",
+      timezone: "",
+      currency: "",
+    },
+
+    mode: "onBlur",
+  });
+
+  /* ------------------------------------------------------------------------ */
+  /*                              Populate Form                               */
+  /* ------------------------------------------------------------------------ */
+
+  useEffect(() => {
+    if (!settings) {
+      return;
+    }
+
+    reset({
+      agencyName: settings.agencyName ?? "",
+      agencyEmail: settings.agencyEmail ?? "",
+      agencyPhone: settings.agencyPhone ?? "",
+      websiteUrl: settings.websiteUrl ?? "",
+      timezone: settings.timezone ?? "",
+      currency: settings.currency ?? "",
+    });
+  }, [settings, reset]);
+
+  /* ------------------------------------------------------------------------ */
+  /*                              Submit Handler                              */
+  /* ------------------------------------------------------------------------ */
+
+  const onSubmit = (values: SettingsFormValues) => {
+    const payload: UpdateSettingsInput = {
+      agencyName: values.agencyName?.trim() || null,
+      agencyEmail: values.agencyEmail?.trim() || null,
+      agencyPhone: values.agencyPhone?.trim() || null,
+      websiteUrl: values.websiteUrl?.trim() || null,
+      timezone: values.timezone.trim(),
+      currency: values.currency.trim().toUpperCase(),
+    };
+
+    updateSettings(payload, {
+      onSuccess: () => {
+        reset({
+          agencyName: values.agencyName?.trim() ?? "",
+          agencyEmail: values.agencyEmail?.trim() ?? "",
+          agencyPhone: values.agencyPhone?.trim() ?? "",
+          websiteUrl: values.websiteUrl?.trim() ?? "",
+          timezone: values.timezone.trim(),
+          currency: values.currency.trim().toUpperCase(),
+        });
+
+        toast.add({
+          title: "Settings saved",
+          description:
+            "Your workspace settings have been updated successfully.",
+        });
+      },
+
+      onError: (error) => {
+        toast.add({
+          type: "error",
+          title: "Unable to save settings",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Something went wrong. Please try again.",
+        });
+      },
+    });
+  };
+
+  /* ------------------------------------------------------------------------ */
+  /*                              Reset Handler                               */
+  /* ------------------------------------------------------------------------ */
+
+  const handleReset = () => {
+    if (!settings) {
+      return;
+    }
+
+    reset({
+      agencyName: settings.agencyName ?? "",
+      agencyEmail: settings.agencyEmail ?? "",
+      agencyPhone: settings.agencyPhone ?? "",
+      websiteUrl: settings.websiteUrl ?? "",
+      timezone: settings.timezone ?? "",
+      currency: settings.currency ?? "",
+    });
+  };
+
+  /* ------------------------------------------------------------------------ */
+  /*                                Loading                                   */
+  /* ------------------------------------------------------------------------ */
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        {/* Header Skeleton */}
+        <div>
+          <div className="h-4 w-28 animate-pulse bg-muted" />
+
+          <div className="mt-4 h-9 w-40 animate-pulse bg-muted" />
+
+          <div className="mt-3 h-4 w-80 animate-pulse bg-muted" />
+        </div>
+
+        {/* Settings Skeleton */}
+        <div className="border border-border bg-card">
+          {/* Card Header */}
+          <div className="border-b border-border p-5">
+            <div className="h-5 w-32 animate-pulse bg-muted" />
+
+            <div className="mt-2 h-3 w-64 animate-pulse bg-muted" />
+          </div>
+
+          {/* Fields */}
+          <div className="space-y-8 p-5">
+            {Array.from({ length: 2 }).map((_, sectionIndex) => (
+              <div key={sectionIndex}>
+                <div className="h-4 w-36 animate-pulse bg-muted" />
+
+                <div className="mt-2 h-3 w-64 animate-pulse bg-muted" />
+
+                <div className="my-5 h-px w-full bg-muted" />
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  {Array.from({ length: sectionIndex === 0 ? 4 : 2 }).map(
+                    (_, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="h-3 w-24 animate-pulse bg-muted" />
+
+                        <div className="h-10 w-full animate-pulse bg-muted/50" />
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Footer Skeleton */}
+          <div className="flex justify-end border-t border-border p-5">
+            <div className="h-10 w-32 animate-pulse bg-muted" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /*                                  Error                                   */
+  /* ------------------------------------------------------------------------ */
+
+  if (isError || !settings) {
+    return (
+      <div className="space-y-8">
+        {/* Header */}
+        <div>
+          <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Workspace
+          </p>
+
+          <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
+
+          <p className="mt-2 text-sm text-muted-foreground">
+            Manage your agency and workspace preferences.
+          </p>
+        </div>
+
+        {/* Error */}
+        <div className="flex min-h-48 flex-col items-center justify-center border border-border bg-card p-6 text-center">
+          <Settings2 className="size-8 text-muted-foreground/50" />
+
+          <p className="mt-4 text-sm font-medium">Unable to load settings</p>
+
+          <p className="mt-1 text-xs text-muted-foreground">
+            Please try refreshing the page.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /*                                Render                                    */
+  /* ------------------------------------------------------------------------ */
+
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Header                                                             */}
+      {/* ------------------------------------------------------------------ */}
+
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
           Workspace
         </p>
 
-        <h1 className="text-3xl font-semibold">Settings</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          Manage your workspace preferences and configuration.
+          Manage your agency and workspace preferences.
         </p>
       </div>
 
-      {/* Coming Soon */}
-      <div className="flex min-h-105 items-center justify-center border border-border bg-card p-8">
-        <div className="max-w-md text-center">
-          <div className="mx-auto mb-6 flex size-14 items-center justify-center border border-border bg-muted/50">
-            <Settings className="size-6 text-muted-foreground" />
+      {/* ------------------------------------------------------------------ */}
+      {/* Settings Form                                                      */}
+      {/* ------------------------------------------------------------------ */}
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <div className="border border-border bg-card">
+          {/* Card Header */}
+          <div className="border-b border-border p-5">
+            <div className="flex items-start gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center bg-muted">
+                <Settings2 className="size-4 text-muted-foreground" />
+              </div>
+
+              <div>
+                <h2 className="font-medium">General Settings</h2>
+
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Configure your agency information and workspace preferences.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="mb-3 inline-flex items-center border border-border px-3 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Coming Soon
+          {/* Form Fields */}
+          <div className="space-y-8 p-5">
+            {/* ========================================================== */}
+            {/* Agency Information                                         */}
+            {/* ========================================================== */}
+
+            <section>
+              <div>
+                <h3 className="text-sm font-medium">Agency Information</h3>
+
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Basic information about your agency.
+                </p>
+              </div>
+
+              <Separator className="my-5" />
+
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Agency Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="agencyName">Agency Name</Label>
+
+                  <Input
+                    id="agencyName"
+                    placeholder="Your agency name"
+                    aria-invalid={Boolean(errors.agencyName)}
+                    aria-describedby={
+                      errors.agencyName ? "agencyName-error" : undefined
+                    }
+                    {...register("agencyName")}
+                  />
+
+                  {errors.agencyName && (
+                    <p
+                      id="agencyName-error"
+                      className="text-xs text-destructive"
+                    >
+                      {errors.agencyName.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Agency Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="agencyEmail">Agency Email</Label>
+
+                  <Input
+                    id="agencyEmail"
+                    type="email"
+                    placeholder="contact@example.com"
+                    aria-invalid={Boolean(errors.agencyEmail)}
+                    aria-describedby={
+                      errors.agencyEmail ? "agencyEmail-error" : undefined
+                    }
+                    {...register("agencyEmail")}
+                  />
+
+                  {errors.agencyEmail && (
+                    <p
+                      id="agencyEmail-error"
+                      className="text-xs text-destructive"
+                    >
+                      {errors.agencyEmail.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Agency Phone */}
+                <div className="space-y-2">
+                  <Label htmlFor="agencyPhone">Agency Phone</Label>
+
+                  <Input
+                    id="agencyPhone"
+                    type="tel"
+                    placeholder="+1 555-000-0000"
+                    aria-invalid={Boolean(errors.agencyPhone)}
+                    aria-describedby={
+                      errors.agencyPhone ? "agencyPhone-error" : undefined
+                    }
+                    {...register("agencyPhone")}
+                  />
+
+                  {errors.agencyPhone && (
+                    <p
+                      id="agencyPhone-error"
+                      className="text-xs text-destructive"
+                    >
+                      {errors.agencyPhone.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Website */}
+                <div className="space-y-2">
+                  <Label htmlFor="websiteUrl">Website URL</Label>
+
+                  <Input
+                    id="websiteUrl"
+                    type="url"
+                    placeholder="https://example.com"
+                    aria-invalid={Boolean(errors.websiteUrl)}
+                    aria-describedby={
+                      errors.websiteUrl ? "websiteUrl-error" : undefined
+                    }
+                    {...register("websiteUrl")}
+                  />
+
+                  {errors.websiteUrl && (
+                    <p
+                      id="websiteUrl-error"
+                      className="text-xs text-destructive"
+                    >
+                      {errors.websiteUrl.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* ========================================================== */}
+            {/* Workspace Preferences                                       */}
+            {/* ========================================================== */}
+
+            <section>
+              <div>
+                <h3 className="text-sm font-medium">Workspace Preferences</h3>
+
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Configure the timezone and currency used by the workspace.
+                </p>
+              </div>
+
+              <Separator className="my-5" />
+
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Timezone */}
+                <div className="space-y-2">
+                  <Label htmlFor="timezone">Timezone</Label>
+
+                  <Input
+                    id="timezone"
+                    placeholder="Asia/Kolkata"
+                    aria-invalid={Boolean(errors.timezone)}
+                    aria-describedby={
+                      errors.timezone
+                        ? "timezone-error"
+                        : "timezone-description"
+                    }
+                    {...register("timezone")}
+                  />
+
+                  {errors.timezone ? (
+                    <p id="timezone-error" className="text-xs text-destructive">
+                      {errors.timezone.message}
+                    </p>
+                  ) : (
+                    <p
+                      id="timezone-description"
+                      className="text-xs text-muted-foreground"
+                    >
+                      Example: Asia/Kolkata
+                    </p>
+                  )}
+                </div>
+
+                {/* Currency */}
+                <div className="space-y-2">
+                  <Label htmlFor="currency">Currency</Label>
+
+                  <Input
+                    id="currency"
+                    placeholder="INR"
+                    maxLength={3}
+                    className="uppercase"
+                    aria-invalid={Boolean(errors.currency)}
+                    aria-describedby={
+                      errors.currency
+                        ? "currency-error"
+                        : "currency-description"
+                    }
+                    {...register("currency")}
+                  />
+
+                  {errors.currency ? (
+                    <p id="currency-error" className="text-xs text-destructive">
+                      {errors.currency.message}
+                    </p>
+                  ) : (
+                    <p
+                      id="currency-description"
+                      className="text-xs text-muted-foreground"
+                    >
+                      Use a 3-letter ISO currency code, e.g. INR, USD, EUR.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
           </div>
 
-          <h2 className="text-2xl font-semibold">Settings are on the way</h2>
+          {/* ---------------------------------------------------------------- */}
+          {/* Footer                                                           */}
+          {/* ---------------------------------------------------------------- */}
 
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            We&apos;re working on workspace settings and configuration options.
-            You&apos;ll soon be able to manage your preferences, account
-            settings, and workspace configuration from here.
-          </p>
+          <div className="flex flex-col gap-3 border-t border-border p-5 sm:flex-row sm:items-center sm:justify-between">
+            {/* Dirty State */}
+            <p className="text-xs text-muted-foreground">
+              {isDirty
+                ? "You have unsaved changes."
+                : "Your settings are up to date."}
+            </p>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={!isDirty || isUpdating}
+                onClick={handleReset}
+              >
+                <RotateCcw className="size-4" />
+                Reset
+              </Button>
+
+              <Button type="submit" disabled={!isDirty || isUpdating}>
+                <Save className="size-4" />
+
+                {isUpdating ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 };
