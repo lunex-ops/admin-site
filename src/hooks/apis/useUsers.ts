@@ -1,89 +1,27 @@
 "use client";
 
-import { authenticatedApi } from "@/config/axiosConfig";
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-/* -------------------------------------------------------------------------- */
-/*                                   Types                                    */
-/* -------------------------------------------------------------------------- */
+import { authenticatedApi } from "@/config/axiosConfig";
 
-export const RoleType = {
-  SUPER_ADMIN: "SUPER_ADMIN",
-  ADMIN: "ADMIN",
-  MODERATOR: "MODERATOR",
-  USER: "USER",
-} as const;
+import type {
+  CreateUserInput,
+  UpdateUserMutationVariables,
+  UserResponse,
+  UsersResponse,
+} from "@/types/user.types";
 
-export type RoleType = (typeof RoleType)[keyof typeof RoleType];
-
-/* -------------------------------------------------------------------------- */
-/*                                  User Type                                 */
-/* -------------------------------------------------------------------------- */
-
-export interface User {
-  id: string;
-  name: string | null;
-  username: string;
-  email: string;
-  photo: string | null;
-  isActive: boolean;
-  role: RoleType;
-  passwordChangedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                              Create User                                   */
-/* -------------------------------------------------------------------------- */
-
-export interface CreateUserInput {
-  username: string;
-  email: string;
-  password: string;
-  passwordConfirm: string;
-  role: RoleType;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                              Update User                                   */
-/* -------------------------------------------------------------------------- */
-
-export interface UpdateUserInput {
-  username?: string;
-  email?: string;
-  role?: RoleType;
-  isActive?: boolean;
-  photo?: string | null;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                Responses                                   */
-/* -------------------------------------------------------------------------- */
-
-export interface UsersResponse {
-  status: "success";
-  results: number;
-  data: {
-    users: User[];
-  };
-}
-
-export interface UserResponse {
-  status: "success";
-  data: {
-    user: User;
-  };
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                Get Users                                   */
-/* -------------------------------------------------------------------------- */
+export const userKeys = {
+  all: ["users"] as const,
+  lists: () => [...userKeys.all, "list"] as const,
+  list: () => [...userKeys.lists()] as const,
+  details: () => [...userKeys.all, "detail"] as const,
+  detail: (id: string) => [...userKeys.details(), id] as const,
+};
 
 export const useUsers = () => {
   return useQuery<UsersResponse>({
-    queryKey: ["users"],
+    queryKey: userKeys.list(),
     queryFn: async () => {
       const { data } = await authenticatedApi.get<UsersResponse>("/users");
 
@@ -92,13 +30,9 @@ export const useUsers = () => {
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Get User By ID                                */
-/* -------------------------------------------------------------------------- */
-
 export const useUser = (id: string) => {
   return useQuery<UserResponse>({
-    queryKey: ["users", id],
+    queryKey: userKeys.detail(id),
     queryFn: async () => {
       const { data } = await authenticatedApi.get<UserResponse>(`/users/${id}`);
 
@@ -108,15 +42,11 @@ export const useUser = (id: string) => {
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Create User                                   */
-/* -------------------------------------------------------------------------- */
-
 export const useCreateUser = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (payload: CreateUserInput): Promise<UserResponse> => {
+  return useMutation<UserResponse, Error, CreateUserInput>({
+    mutationFn: async (payload) => {
       const { data } = await authenticatedApi.post<UserResponse>(
         "/users",
         payload,
@@ -127,27 +57,17 @@ export const useCreateUser = () => {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["users"],
+        queryKey: userKeys.all,
       });
     },
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Update User                                   */
-/* -------------------------------------------------------------------------- */
-
 export const useUpdateUser = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      id,
-      payload,
-    }: {
-      id: string;
-      payload: UpdateUserInput;
-    }): Promise<UserResponse> => {
+  return useMutation<UserResponse, Error, UpdateUserMutationVariables>({
+    mutationFn: async ({ id, payload }) => {
       const { data } = await authenticatedApi.patch<UserResponse>(
         `/users/${id}`,
         payload,
@@ -157,34 +77,30 @@ export const useUpdateUser = () => {
     },
 
     onSuccess: (response, variables) => {
-      queryClient.setQueryData(["users", variables.id], response);
+      queryClient.setQueryData(userKeys.detail(variables.id), response);
 
       queryClient.invalidateQueries({
-        queryKey: ["users"],
+        queryKey: userKeys.all,
       });
     },
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Delete User                                   */
-/* -------------------------------------------------------------------------- */
-
 export const useDeleteUser = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (id: string) => {
+  return useMutation<void, Error, string>({
+    mutationFn: async (id) => {
       await authenticatedApi.delete(`/users/${id}`);
     },
 
     onSuccess: (_, id) => {
       queryClient.removeQueries({
-        queryKey: ["users", id],
+        queryKey: userKeys.detail(id),
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["users"],
+        queryKey: userKeys.all,
       });
     },
   });

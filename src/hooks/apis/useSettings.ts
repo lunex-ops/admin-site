@@ -1,53 +1,21 @@
 "use client";
 
-import { authenticatedApi } from "@/config/axiosConfig";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-/* -------------------------------------------------------------------------- */
-/*                                   Types                                    */
-/* -------------------------------------------------------------------------- */
+import { authenticatedApi } from "@/config/axiosConfig";
 
-export interface Settings {
-  id: string;
-  agencyName: string | null;
-  agencyEmail: string | null;
-  agencyPhone: string | null;
-  websiteUrl: string | null;
-  timezone: string;
-  currency: string;
-}
+import type {
+  SettingsResponse,
+  UpdateSettingsInput,
+} from "@/types/settings.types";
 
-/* -------------------------------------------------------------------------- */
-/*                              Update Settings                               */
-/* -------------------------------------------------------------------------- */
-
-export interface UpdateSettingsInput {
-  agencyName?: string | null;
-  agencyEmail?: string | null;
-  agencyPhone?: string | null;
-  websiteUrl?: string | null;
-  timezone?: string;
-  currency?: string;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                Responses                                   */
-/* -------------------------------------------------------------------------- */
-
-export interface SettingsResponse {
-  status: "success";
-  data: {
-    settings: Settings;
-  };
-}
-
-/* -------------------------------------------------------------------------- */
-/*                              Get Settings                                  */
-/* -------------------------------------------------------------------------- */
+export const settingsKeys = {
+  all: ["settings"] as const,
+};
 
 export const useSettings = () => {
   return useQuery<SettingsResponse>({
-    queryKey: ["settings"],
+    queryKey: settingsKeys.all,
     queryFn: async () => {
       const { data } =
         await authenticatedApi.get<SettingsResponse>("/settings");
@@ -57,17 +25,11 @@ export const useSettings = () => {
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                             Update Settings                                */
-/* -------------------------------------------------------------------------- */
-
 export const useUpdateSettings = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (
-      payload: UpdateSettingsInput,
-    ): Promise<SettingsResponse> => {
+  return useMutation<SettingsResponse, Error, UpdateSettingsInput>({
+    mutationFn: async (payload) => {
       const { data } = await authenticatedApi.patch<SettingsResponse>(
         "/settings",
         payload,
@@ -77,11 +39,7 @@ export const useUpdateSettings = () => {
     },
 
     onSuccess: (response) => {
-      queryClient.setQueryData(["settings"], response);
-
-      queryClient.invalidateQueries({
-        queryKey: ["settings"],
-      });
+      queryClient.setQueryData(settingsKeys.all, response);
     },
   });
 };

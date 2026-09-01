@@ -4,85 +4,28 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { authenticatedApi, unauthenticatedApi } from "@/config/axiosConfig";
 
-/* -------------------------------------------------------------------------- */
-/*                                   Types                                    */
-/* -------------------------------------------------------------------------- */
-
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  photo: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface SignUpInput {
-  username: string;
-  email: string;
-  password: string;
-  passwordConfirm: string;
-  photo?: string;
-}
-
-export interface SignInInput {
-  email: string;
-  password: string;
-}
-
-export interface ForgotPasswordInput {
-  email: string;
-}
-
-export interface ResetPasswordInput {
-  password: string;
-  passwordConfirm: string;
-  token: string;
-}
-
-export interface VerifyEmailInput {
-  token: string;
-}
-
-interface AuthResponse {
-  status: "success";
-  token: string;
-  message?: string;
-  data: {
-    user: User;
-  };
-}
-
-interface UserResponse {
-  status: "success";
-  data: {
-    user: User;
-  };
-}
-
-interface MessageResponse {
-  status: "success";
-  message: string;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                Query Keys                                  */
-/* -------------------------------------------------------------------------- */
+import type {
+  AuthResponse,
+  CurrentUserResponse,
+  ForgotPasswordInput,
+  MessageResponse,
+  ResetPasswordInput,
+  SignInInput,
+  SignUpInput,
+  VerifyEmailInput,
+} from "@/types/auth.types";
 
 export const authKeys = {
-  currentUser: ["auth", "current-user"] as const,
+  all: ["auth"] as const,
+  currentUser: () => [...authKeys.all, "current-user"] as const,
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Current User                                  */
-/* -------------------------------------------------------------------------- */
-
 export const useCurrentUser = () => {
-  return useQuery({
-    queryKey: authKeys.currentUser,
-
-    queryFn: async (): Promise<UserResponse> => {
-      const { data } = await authenticatedApi.get<UserResponse>("/auth/me");
+  return useQuery<CurrentUserResponse>({
+    queryKey: authKeys.currentUser(),
+    queryFn: async () => {
+      const { data } =
+        await authenticatedApi.get<CurrentUserResponse>("/auth/me");
 
       return data;
     },
@@ -91,13 +34,9 @@ export const useCurrentUser = () => {
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                                  Sign Up                                   */
-/* -------------------------------------------------------------------------- */
-
 export const useSignUp = () => {
-  return useMutation({
-    mutationFn: async (payload: SignUpInput): Promise<AuthResponse> => {
+  return useMutation<AuthResponse, Error, SignUpInput>({
+    mutationFn: async (payload) => {
       const { data } = await unauthenticatedApi.post<AuthResponse>(
         "/users/signup",
         payload,
@@ -108,15 +47,11 @@ export const useSignUp = () => {
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                                  Sign In                                   */
-/* -------------------------------------------------------------------------- */
-
 export const useSignIn = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (payload: SignInInput): Promise<AuthResponse> => {
+  return useMutation<AuthResponse, Error, SignInInput>({
+    mutationFn: async (payload) => {
       const { data } = await unauthenticatedApi.post<AuthResponse>(
         "/users/signin",
         payload,
@@ -126,7 +61,7 @@ export const useSignIn = () => {
     },
 
     onSuccess: (response) => {
-      queryClient.setQueryData(authKeys.currentUser, {
+      queryClient.setQueryData(authKeys.currentUser(), {
         status: "success",
         data: {
           user: response.data.user,
@@ -136,15 +71,9 @@ export const useSignIn = () => {
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Forgot Password                               */
-/* -------------------------------------------------------------------------- */
-
 export const useForgotPassword = () => {
-  return useMutation({
-    mutationFn: async (
-      payload: ForgotPasswordInput,
-    ): Promise<MessageResponse> => {
+  return useMutation<MessageResponse, Error, ForgotPasswordInput>({
+    mutationFn: async (payload) => {
       const { data } = await unauthenticatedApi.post<MessageResponse>(
         "/auth/forgot-password",
         payload,
@@ -155,15 +84,9 @@ export const useForgotPassword = () => {
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Reset Password                                */
-/* -------------------------------------------------------------------------- */
-
 export const useResetPassword = () => {
-  return useMutation({
-    mutationFn: async (
-      payload: ResetPasswordInput,
-    ): Promise<MessageResponse> => {
+  return useMutation<MessageResponse, Error, ResetPasswordInput>({
+    mutationFn: async (payload) => {
       const { data } = await unauthenticatedApi.post<MessageResponse>(
         "/auth/reset-password",
         payload,
@@ -174,15 +97,11 @@ export const useResetPassword = () => {
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                               Verify Email                                 */
-/* -------------------------------------------------------------------------- */
-
 export const useVerifyEmail = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (payload: VerifyEmailInput): Promise<MessageResponse> => {
+  return useMutation<MessageResponse, Error, VerifyEmailInput>({
+    mutationFn: async (payload) => {
       const { data } = await unauthenticatedApi.post<MessageResponse>(
         "/auth/verify-email",
         payload,
@@ -193,21 +112,17 @@ export const useVerifyEmail = () => {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: authKeys.currentUser,
+        queryKey: authKeys.currentUser(),
       });
     },
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                                   Logout                                   */
-/* -------------------------------------------------------------------------- */
-
 export const useLogout = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (): Promise<MessageResponse> => {
+  return useMutation<MessageResponse, Error, void>({
+    mutationFn: async () => {
       const { data } =
         await authenticatedApi.post<MessageResponse>("/auth/logout");
 
@@ -216,7 +131,7 @@ export const useLogout = () => {
 
     onSuccess: () => {
       queryClient.removeQueries({
-        queryKey: authKeys.currentUser,
+        queryKey: authKeys.currentUser(),
       });
     },
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useDashboards } from "@/hooks/apis/useDashboard";
+import { useDashboard } from "@/hooks/apis/useDashboard";
 import {
   ArrowUpRight,
   BriefcaseBusiness,
@@ -71,7 +71,7 @@ const statusStyles: Record<string, string> = {
 };
 
 const DashboardPage = () => {
-  const { data, isLoading, isError } = useDashboards();
+  const { data, isLoading, isError } = useDashboard();
 
   const dashboard = data?.data;
   const overview = dashboard?.overview;

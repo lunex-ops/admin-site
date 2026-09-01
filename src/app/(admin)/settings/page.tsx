@@ -12,15 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/components/ui/toast";
 
-import {
-  useSettings,
-  useUpdateSettings,
-  type UpdateSettingsInput,
-} from "@/hooks/apis/useSettings";
-
-/* -------------------------------------------------------------------------- */
-/*                                Validation                                  */
-/* -------------------------------------------------------------------------- */
+import { useSettings, useUpdateSettings } from "@/hooks/apis/useSettings";
+import { UpdateSettingsInput } from "@/types/settings.types";
 
 const settingsSchema = z.object({
   agencyName: z
@@ -80,10 +73,6 @@ const SettingsPage = () => {
 
   const settings = data?.data?.settings;
 
-  /* ------------------------------------------------------------------------ */
-  /*                                Form                                      */
-  /* ------------------------------------------------------------------------ */
-
   const {
     register,
     handleSubmit,
@@ -104,10 +93,6 @@ const SettingsPage = () => {
     mode: "onBlur",
   });
 
-  /* ------------------------------------------------------------------------ */
-  /*                              Populate Form                               */
-  /* ------------------------------------------------------------------------ */
-
   useEffect(() => {
     if (!settings) {
       return;
@@ -122,10 +107,6 @@ const SettingsPage = () => {
       currency: settings.currency ?? "",
     });
   }, [settings, reset]);
-
-  /* ------------------------------------------------------------------------ */
-  /*                              Submit Handler                              */
-  /* ------------------------------------------------------------------------ */
 
   const onSubmit = (values: SettingsFormValues) => {
     const payload: UpdateSettingsInput = {
@@ -168,10 +149,6 @@ const SettingsPage = () => {
     });
   };
 
-  /* ------------------------------------------------------------------------ */
-  /*                              Reset Handler                               */
-  /* ------------------------------------------------------------------------ */
-
   const handleReset = () => {
     if (!settings) {
       return;
@@ -187,14 +164,9 @@ const SettingsPage = () => {
     });
   };
 
-  /* ------------------------------------------------------------------------ */
-  /*                                Loading                                   */
-  /* ------------------------------------------------------------------------ */
-
   if (isLoading) {
     return (
       <div className="space-y-8">
-        {/* Header Skeleton */}
         <div>
           <div className="h-4 w-28 animate-pulse bg-muted" />
 
@@ -203,16 +175,13 @@ const SettingsPage = () => {
           <div className="mt-3 h-4 w-80 animate-pulse bg-muted" />
         </div>
 
-        {/* Settings Skeleton */}
         <div className="border border-border bg-card">
-          {/* Card Header */}
           <div className="border-b border-border p-5">
             <div className="h-5 w-32 animate-pulse bg-muted" />
 
             <div className="mt-2 h-3 w-64 animate-pulse bg-muted" />
           </div>
 
-          {/* Fields */}
           <div className="space-y-8 p-5">
             {Array.from({ length: 2 }).map((_, sectionIndex) => (
               <div key={sectionIndex}>
@@ -237,7 +206,6 @@ const SettingsPage = () => {
             ))}
           </div>
 
-          {/* Footer Skeleton */}
           <div className="flex justify-end border-t border-border p-5">
             <div className="h-10 w-32 animate-pulse bg-muted" />
           </div>
@@ -246,14 +214,9 @@ const SettingsPage = () => {
     );
   }
 
-  /* ------------------------------------------------------------------------ */
-  /*                                  Error                                   */
-  /* ------------------------------------------------------------------------ */
-
   if (isError || !settings) {
     return (
       <div className="space-y-8">
-        {/* Header */}
         <div>
           <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
             Workspace
@@ -266,7 +229,6 @@ const SettingsPage = () => {
           </p>
         </div>
 
-        {/* Error */}
         <div className="flex min-h-48 flex-col items-center justify-center border border-border bg-card p-6 text-center">
           <Settings2 className="size-8 text-muted-foreground/50" />
 
@@ -280,16 +242,8 @@ const SettingsPage = () => {
     );
   }
 
-  /* ------------------------------------------------------------------------ */
-  /*                                Render                                    */
-  /* ------------------------------------------------------------------------ */
-
   return (
     <div className="space-y-8">
-      {/* ------------------------------------------------------------------ */}
-      {/* Header                                                             */}
-      {/* ------------------------------------------------------------------ */}
-
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
           Workspace
@@ -302,13 +256,8 @@ const SettingsPage = () => {
         </p>
       </div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Settings Form                                                      */}
-      {/* ------------------------------------------------------------------ */}
-
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="border border-border bg-card">
-          {/* Card Header */}
           <div className="border-b border-border p-5">
             <div className="flex items-start gap-3">
               <div className="flex size-9 shrink-0 items-center justify-center bg-muted">
@@ -325,12 +274,7 @@ const SettingsPage = () => {
             </div>
           </div>
 
-          {/* Form Fields */}
           <div className="space-y-8 p-5">
-            {/* ========================================================== */}
-            {/* Agency Information                                         */}
-            {/* ========================================================== */}
-
             <section>
               <div>
                 <h3 className="text-sm font-medium">Agency Information</h3>
@@ -343,7 +287,6 @@ const SettingsPage = () => {
               <Separator className="my-5" />
 
               <div className="grid gap-6 md:grid-cols-2">
-                {/* Agency Name */}
                 <div className="space-y-2">
                   <Label htmlFor="agencyName">Agency Name</Label>
 
@@ -367,7 +310,6 @@ const SettingsPage = () => {
                   )}
                 </div>
 
-                {/* Agency Email */}
                 <div className="space-y-2">
                   <Label htmlFor="agencyEmail">Agency Email</Label>
 
@@ -392,7 +334,6 @@ const SettingsPage = () => {
                   )}
                 </div>
 
-                {/* Agency Phone */}
                 <div className="space-y-2">
                   <Label htmlFor="agencyPhone">Agency Phone</Label>
 
@@ -417,7 +358,6 @@ const SettingsPage = () => {
                   )}
                 </div>
 
-                {/* Website */}
                 <div className="space-y-2">
                   <Label htmlFor="websiteUrl">Website URL</Label>
 
@@ -444,10 +384,6 @@ const SettingsPage = () => {
               </div>
             </section>
 
-            {/* ========================================================== */}
-            {/* Workspace Preferences                                       */}
-            {/* ========================================================== */}
-
             <section>
               <div>
                 <h3 className="text-sm font-medium">Workspace Preferences</h3>
@@ -460,7 +396,6 @@ const SettingsPage = () => {
               <Separator className="my-5" />
 
               <div className="grid gap-6 md:grid-cols-2">
-                {/* Timezone */}
                 <div className="space-y-2">
                   <Label htmlFor="timezone">Timezone</Label>
 
@@ -490,7 +425,6 @@ const SettingsPage = () => {
                   )}
                 </div>
 
-                {/* Currency */}
                 <div className="space-y-2">
                   <Label htmlFor="currency">Currency</Label>
 
@@ -525,19 +459,13 @@ const SettingsPage = () => {
             </section>
           </div>
 
-          {/* ---------------------------------------------------------------- */}
-          {/* Footer                                                           */}
-          {/* ---------------------------------------------------------------- */}
-
           <div className="flex flex-col gap-3 border-t border-border p-5 sm:flex-row sm:items-center sm:justify-between">
-            {/* Dirty State */}
             <p className="text-xs text-muted-foreground">
               {isDirty
                 ? "You have unsaved changes."
                 : "Your settings are up to date."}
             </p>
 
-            {/* Actions */}
             <div className="flex items-center justify-end gap-2">
               <Button
                 type="button"

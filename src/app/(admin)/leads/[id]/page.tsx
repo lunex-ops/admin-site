@@ -1,34 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import {
   ArrowLeft,
   Building2,
-  Check,
-  CheckCircle2,
+  Calendar,
   ExternalLink,
   Globe,
   Mail,
   Pencil,
   Phone,
   Tag,
+  Trash2,
   UserRound,
-  X,
+  UserRoundCheck,
+  UserRoundX,
 } from "lucide-react";
 
 import {
-  useAcceptContact,
-  useContact,
-  useRejectContact,
-} from "@/hooks/apis/useContacts";
+  useAssignLead,
+  useDeleteLead,
+  useLead,
+  useUnassignLead,
+} from "@/hooks/apis/useLeads";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-
-import RejectionDialog from "@/components/common/rejection-dialog";
 import ConfirmationDialog from "@/components/common/confirmation-dialog";
 
 const formatValue = (value: string | null | undefined) => {
@@ -40,7 +40,9 @@ const formatValue = (value: string | null | undefined) => {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-const formatDate = (value: string) => {
+const formatDate = (value: string | null | undefined) => {
+  if (!value) return "—";
+
   return new Intl.DateTimeFormat("en-IN", {
     day: "2-digit",
     month: "short",
@@ -48,7 +50,9 @@ const formatDate = (value: string) => {
   }).format(new Date(value));
 };
 
-const formatDateTime = (value: string) => {
+const formatDateTime = (value: string | null | undefined) => {
+  if (!value) return "—";
+
   return new Intl.DateTimeFormat("en-IN", {
     day: "2-digit",
     month: "short",
@@ -58,26 +62,43 @@ const formatDateTime = (value: string) => {
   }).format(new Date(value));
 };
 
-const statusStyles: Record<string, string> = {
-  NEW: "bg-blue-500/10 text-blue-600",
-  CONVERTED: "bg-green-500/10 text-green-600",
-  SPAM: "bg-red-500/10 text-red-600",
+const formatCurrency = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return "—";
+
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(value);
 };
 
-const ContactDetailsPage = () => {
+const statusStyles: Record<string, string> = {
+  NEW: "bg-blue-500/10 text-blue-600",
+  CONTACTED: "bg-yellow-500/10 text-yellow-600",
+  QUALIFIED: "bg-purple-500/10 text-purple-600",
+  PROPOSAL: "bg-orange-500/10 text-orange-600",
+  WON: "bg-green-500/10 text-green-600",
+  LOST: "bg-red-500/10 text-red-600",
+};
+
+const LeadDetailsPage = () => {
   const params = useParams();
+  const router = useRouter();
+
   const id = params.id as string;
 
-  const { data, isLoading, isError } = useContact(id);
+  const { data, isLoading, isError } = useLead(id);
 
-  const { mutate: acceptContact, isPending: isAccepting } = useAcceptContact();
+  const { mutate: assignLead, isPending: isAssigning } = useAssignLead();
 
-  const { mutate: rejectContact, isPending: isRejecting } = useRejectContact();
+  const { mutate: unassignLead, isPending: isUnassigning } = useUnassignLead();
 
-  const [isAcceptDialogOpen, setIsAcceptDialogOpen] = useState(false);
-  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const { mutate: deleteLead, isPending: isDeleting } = useDeleteLead();
 
-  const contact = data?.data?.contact;
+  const [isUnassignDialogOpen, setIsUnassignDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const lead = data?.data?.lead;
 
   if (isLoading) {
     return (
@@ -96,27 +117,29 @@ const ContactDetailsPage = () => {
     );
   }
 
-  if (isError || !contact) {
+  if (isError || !lead) {
     return (
       <div className="flex min-h-64 flex-col items-center justify-center text-center">
         <UserRound className="size-8 text-muted-foreground/50" />
 
-        <p className="mt-4 text-sm font-medium">Unable to load contact</p>
+        <p className="mt-4 text-sm font-medium">Unable to load lead</p>
 
         <p className="mt-1 text-xs text-muted-foreground">
-          The contact may no longer exist or could not be loaded.
+          The lead may no longer exist or could not be loaded.
         </p>
 
         <Link
-          href="/contacts"
+          href="/leads"
           className="mt-5 inline-flex items-center gap-2 text-sm font-medium hover:underline"
         >
           <ArrowLeft className="size-4" />
-          Back to Contacts
+          Back to Leads
         </Link>
       </div>
     );
   }
+
+  const contact = lead.contact;
 
   const initials = contact.name
     .split(" ")
@@ -125,26 +148,33 @@ const ContactDetailsPage = () => {
     .slice(0, 2)
     .toUpperCase();
 
-  const handleAccept = () => {
-    acceptContact(contact.id, {
+  const handleAssign = () => {
+    /*
+     * Assignment UI will be added once we build the user selector.
+     *
+     * The API expects:
+     *
+     * {
+     *   assignedToId: string;
+     * }
+     */
+  };
+
+  const handleUnassign = () => {
+    unassignLead(lead.id, {
       onSuccess: () => {
-        setIsAcceptDialogOpen(false);
+        setIsUnassignDialogOpen(false);
       },
     });
   };
 
-  const handleReject = (rejectionReason: string) => {
-    rejectContact(
-      {
-        id: contact.id,
-        rejectionReason,
+  const handleDelete = () => {
+    deleteLead(lead.id, {
+      onSuccess: () => {
+        setIsDeleteDialogOpen(false);
+        router.push("/leads");
       },
-      {
-        onSuccess: () => {
-          setIsRejectDialogOpen(false);
-        },
-      },
-    );
+    });
   };
 
   return (
@@ -152,11 +182,11 @@ const ContactDetailsPage = () => {
       <div className="space-y-8">
         <div>
           <Link
-            href="/contacts"
+            href="/leads"
             className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-4" />
-            Back to Contacts
+            Back to Leads
           </Link>
 
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
@@ -173,11 +203,11 @@ const ContactDetailsPage = () => {
 
                   <span
                     className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${
-                      statusStyles[contact.status] ??
+                      statusStyles[lead.status] ??
                       "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {formatValue(contact.status)}
+                    {formatValue(lead.status)}
                   </span>
                 </div>
 
@@ -200,30 +230,43 @@ const ContactDetailsPage = () => {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              {contact.status === "NEW" && (
-                <>
-                  <Button onClick={() => setIsAcceptDialogOpen(true)}>
-                    <Check className="size-4" />
-                    Accept
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsRejectDialogOpen(true)}
-                  >
-                    <X className="size-4" />
-                    Reject
-                  </Button>
-                </>
+              {lead.assignedTo ? (
+                <Button
+                  variant="outline"
+                  onClick={() => setIsUnassignDialogOpen(true)}
+                  disabled={isUnassigning}
+                >
+                  <UserRoundX className="size-4" />
+                  Unassign
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={handleAssign}
+                  disabled={isAssigning}
+                >
+                  <UserRoundCheck className="size-4" />
+                  Assign
+                </Button>
               )}
 
               <Link
-                href={`/contacts/${contact.id}/edit`}
+                href={`/leads/${lead.id}/edit`}
                 className="inline-flex h-9 items-center justify-center gap-2 border border-border bg-background px-4 text-sm font-medium transition-colors hover:bg-muted"
               >
                 <Pencil className="size-4" />
                 Edit
               </Link>
+
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteDialogOpen(true)}
+                disabled={isDeleting}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="size-4" />
+                Delete
+              </Button>
             </div>
           </div>
         </div>
@@ -234,7 +277,7 @@ const ContactDetailsPage = () => {
               <h2 className="font-medium">Contact Information</h2>
 
               <p className="mt-1 text-xs text-muted-foreground">
-                Primary information submitted by the contact.
+                Contact information associated with this lead.
               </p>
             </div>
 
@@ -283,10 +326,10 @@ const ContactDetailsPage = () => {
 
           <section className="border border-border bg-card">
             <div className="border-b border-border p-5">
-              <h2 className="font-medium">Contact Status</h2>
+              <h2 className="font-medium">Lead Status</h2>
 
               <p className="mt-1 text-xs text-muted-foreground">
-                Current state of this contact.
+                Current state of this lead.
               </p>
             </div>
 
@@ -299,11 +342,11 @@ const ContactDetailsPage = () => {
                 <div className="mt-2">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      statusStyles[contact.status] ??
+                      statusStyles[lead.status] ??
                       "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {formatValue(contact.status)}
+                    {formatValue(lead.status)}
                   </span>
                 </div>
               </div>
@@ -312,15 +355,15 @@ const ContactDetailsPage = () => {
 
               <div>
                 <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  Submitted
+                  Created
                 </p>
 
                 <p className="mt-2 text-sm font-medium">
-                  {formatDate(contact.createdAt)}
+                  {formatDate(lead.createdAt)}
                 </p>
 
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {formatDateTime(contact.createdAt)}
+                  {formatDateTime(lead.createdAt)}
                 </p>
               </div>
 
@@ -330,11 +373,11 @@ const ContactDetailsPage = () => {
                 </p>
 
                 <p className="mt-2 text-sm font-medium">
-                  {formatDate(contact.updatedAt)}
+                  {formatDate(lead.updatedAt)}
                 </p>
 
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {formatDateTime(contact.updatedAt)}
+                  {formatDateTime(lead.updatedAt)}
                 </p>
               </div>
             </div>
@@ -345,11 +388,11 @@ const ContactDetailsPage = () => {
               <h2 className="font-medium">Project Overview</h2>
 
               <p className="mt-1 text-xs text-muted-foreground">
-                Information about the project requested by the contact.
+                Information about the project associated with this lead.
               </p>
             </div>
 
-            <div className="grid gap-6 p-5 md:grid-cols-3">
+            <div className="grid gap-6 p-5 md:grid-cols-4">
               <DetailItem
                 label="Project Type"
                 value={formatValue(contact.projectType)}
@@ -358,6 +401,79 @@ const ContactDetailsPage = () => {
               <DetailItem label="Budget" value={contact.budget} />
 
               <DetailItem label="Timeline" value={contact.timeline} />
+
+              <DetailItem
+                label="Estimated Value"
+                value={formatCurrency(lead.estimatedValue)}
+              />
+            </div>
+          </section>
+
+          <section className="border border-border bg-card lg:col-span-2">
+            <div className="border-b border-border p-5">
+              <h2 className="font-medium">Lead Activity</h2>
+
+              <p className="mt-1 text-xs text-muted-foreground">
+                Track the latest contact and follow-up information.
+              </p>
+            </div>
+
+            <div className="grid gap-6 p-5 sm:grid-cols-2">
+              <DetailItem
+                icon={<Calendar className="size-4" />}
+                label="Last Contacted"
+                value={formatDateTime(lead.lastContactedAt)}
+              />
+
+              <DetailItem
+                icon={<Calendar className="size-4" />}
+                label="Next Follow-up"
+                value={formatDateTime(lead.nextFollowUpAt)}
+              />
+            </div>
+          </section>
+
+          <section className="border border-border bg-card">
+            <div className="border-b border-border p-5">
+              <h2 className="font-medium">Assignment</h2>
+
+              <p className="mt-1 text-xs text-muted-foreground">
+                User currently responsible for this lead.
+              </p>
+            </div>
+
+            <div className="p-5">
+              {lead.assignedTo ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 items-center justify-center bg-muted">
+                    <UserRound className="size-5 text-muted-foreground" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">
+                      {lead.assignedTo.name || lead.assignedTo.username}
+                    </p>
+
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                      {lead.assignedTo.email}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 items-center justify-center bg-muted">
+                    <UserRoundX className="size-5 text-muted-foreground" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium">Unassigned</p>
+
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      No user is currently assigned to this lead.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
@@ -372,128 +488,75 @@ const ContactDetailsPage = () => {
 
             <div className="p-5">
               <p className="whitespace-pre-wrap text-sm leading-7 text-foreground/90">
-                {contact.projectDetails}
+                {contact.projectDetails || "—"}
               </p>
             </div>
           </section>
 
           <section className="border border-border bg-card">
             <div className="border-b border-border p-5">
-              <h2 className="font-medium">Additional Information</h2>
+              <h2 className="font-medium">Notes</h2>
 
               <p className="mt-1 text-xs text-muted-foreground">
-                Other information provided with the submission.
+                Internal notes for this lead.
               </p>
             </div>
 
-            <div className="space-y-5 p-5">
-              <DetailItem label="Referral Source" value={contact.referral} />
-
-              {contact.rejectionReason && (
-                <>
-                  <Separator />
-
-                  <DetailItem
-                    label="Rejection Reason"
-                    value={contact.rejectionReason}
-                  />
-                </>
-              )}
-
-              {contact.rejectedAt && (
-                <DetailItem
-                  label="Rejected At"
-                  value={formatDateTime(contact.rejectedAt)}
-                />
-              )}
+            <div className="p-5">
+              <p className="whitespace-pre-wrap text-sm leading-7 text-foreground/90">
+                {lead.notes || "No notes have been added."}
+              </p>
             </div>
           </section>
 
           <section className="border border-border bg-card lg:col-span-3">
             <div className="border-b border-border p-5">
-              <h2 className="font-medium">Lead</h2>
+              <h2 className="font-medium">Additional Information</h2>
 
               <p className="mt-1 text-xs text-muted-foreground">
-                Lead conversion information for this contact.
+                Other information associated with this lead.
               </p>
             </div>
 
-            <div className="p-5">
-              {contact.lead ? (
-                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-10 items-center justify-center bg-green-500/10 text-green-600">
-                      <CheckCircle2 className="size-5" />
-                    </div>
+            <div className="grid gap-6 p-5 sm:grid-cols-3">
+              <DetailItem label="Referral Source" value={contact.referral} />
 
-                    <div>
-                      <p className="text-sm font-medium">Converted to lead</p>
+              <DetailItem
+                label="Contact Created"
+                value={formatDateTime(contact.createdAt)}
+              />
 
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        This contact has been successfully converted into a
-                        lead.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-6">
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        Lead Status
-                      </p>
-
-                      <p className="mt-1 text-sm font-medium">
-                        {formatValue(contact.lead.status)}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-muted-foreground">Created</p>
-
-                      <p className="mt-1 text-sm font-medium">
-                        {formatDate(contact.lead.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center bg-muted">
-                    <UserRound className="size-5 text-muted-foreground" />
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">No lead created</p>
-
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      This contact has not been converted into a lead yet.
-                    </p>
-                  </div>
-                </div>
-              )}
+              <DetailItem
+                label="Contact Updated"
+                value={formatDateTime(contact.updatedAt)}
+              />
             </div>
           </section>
         </div>
       </div>
 
       <ConfirmationDialog
-        open={isAcceptDialogOpen}
-        onOpenChange={setIsAcceptDialogOpen}
-        title="Accept contact?"
-        message={`Are you sure you want to accept ${contact.name}? This will convert the contact into a lead.`}
-        confirmText="Accept"
-        onConfirm={handleAccept}
-        isLoading={isAccepting}
+        open={isUnassignDialogOpen}
+        onOpenChange={setIsUnassignDialogOpen}
+        title="Unassign lead?"
+        message={`Are you sure you want to unassign ${contact.name}? The lead will no longer be assigned to ${
+          lead.assignedTo?.name ||
+          lead.assignedTo?.username ||
+          "the current user"
+        }.`}
+        confirmText="Unassign"
+        onConfirm={handleUnassign}
+        isLoading={isUnassigning}
       />
 
-      <RejectionDialog
-        open={isRejectDialogOpen}
-        onOpenChange={setIsRejectDialogOpen}
-        title="Reject contact?"
-        message={`Provide a reason for rejecting ${contact.name}. This reason will be saved with the contact.`}
-        confirmText="Reject"
-        onConfirm={handleReject}
-        isLoading={isRejecting}
+      <ConfirmationDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        title="Delete lead?"
+        message={`Are you sure you want to permanently delete the lead for ${contact.name}? This action cannot be undone.`}
+        confirmText="Delete"
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
       />
     </>
   );
@@ -541,4 +604,4 @@ const DetailItem = ({
   );
 };
 
-export default ContactDetailsPage;
+export default LeadDetailsPage;

@@ -17,57 +17,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { type Contact } from "@/hooks/apis/useContacts";
-
-/* -------------------------------------------------------------------------- */
-/*                                  Helpers                                   */
-/* -------------------------------------------------------------------------- */
-
-const formatValue = (value: string | null | undefined) => {
-  if (!value) return "—";
-
-  return value
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
-
-const formatDate = (value: string) => {
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
-};
-
-const statusStyles: Record<string, string> = {
-  NEW: "bg-blue-500/10 text-blue-600",
-  CONVERTED: "bg-green-500/10 text-green-600",
-  SPAM: "bg-red-500/10 text-red-600",
-};
-
-/* -------------------------------------------------------------------------- */
-/*                                  Features                                  */
-/* -------------------------------------------------------------------------- */
+import { Contact } from "@/types/contact.types";
+import { contactStatusStyles, formatDate, formatValue } from "@/lib/helpers";
 
 const features = tableFeatures({});
 
-/* -------------------------------------------------------------------------- */
-/*                               Column Helper                                */
-/* -------------------------------------------------------------------------- */
-
 const columnHelper = createColumnHelper<typeof features, Contact>();
-
-/* -------------------------------------------------------------------------- */
-/*                                   Columns                                  */
-/* -------------------------------------------------------------------------- */
 
 const getColumns = () =>
   columnHelper.columns([
-    /* ---------------------------------------------------------------------- */
-    /* Name                                                                   */
-    /* ---------------------------------------------------------------------- */
-
     columnHelper.accessor("name", {
       header: "Name",
       cell: ({ getValue }) => (
@@ -75,20 +33,12 @@ const getColumns = () =>
       ),
     }),
 
-    /* ---------------------------------------------------------------------- */
-    /* Company                                                                */
-    /* ---------------------------------------------------------------------- */
-
     columnHelper.accessor("company", {
       header: "Company",
       cell: ({ getValue }) => (
         <span className="whitespace-nowrap">{getValue() || "—"}</span>
       ),
     }),
-
-    /* ---------------------------------------------------------------------- */
-    /* Email                                                                  */
-    /* ---------------------------------------------------------------------- */
 
     columnHelper.accessor("email", {
       header: "Email",
@@ -99,20 +49,12 @@ const getColumns = () =>
       ),
     }),
 
-    /* ---------------------------------------------------------------------- */
-    /* Phone                                                                  */
-    /* ---------------------------------------------------------------------- */
-
     columnHelper.accessor("phone", {
       header: "Phone",
       cell: ({ getValue }) => (
         <span className="whitespace-nowrap">{getValue() || "—"}</span>
       ),
     }),
-
-    /* ---------------------------------------------------------------------- */
-    /* Industry                                                               */
-    /* ---------------------------------------------------------------------- */
 
     columnHelper.accessor("industry", {
       header: "Industry",
@@ -121,20 +63,12 @@ const getColumns = () =>
       ),
     }),
 
-    /* ---------------------------------------------------------------------- */
-    /* Project Type                                                           */
-    /* ---------------------------------------------------------------------- */
-
     columnHelper.accessor("projectType", {
       header: "Project Type",
       cell: ({ getValue }) => (
         <span className="whitespace-nowrap">{formatValue(getValue())}</span>
       ),
     }),
-
-    /* ---------------------------------------------------------------------- */
-    /* Status                                                                 */
-    /* ---------------------------------------------------------------------- */
 
     columnHelper.accessor("status", {
       header: "Status",
@@ -144,7 +78,7 @@ const getColumns = () =>
         return (
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-              statusStyles[status] ?? "bg-muted text-muted-foreground"
+              contactStatusStyles[status] ?? "bg-muted text-muted-foreground"
             }`}
           >
             {formatValue(status)}
@@ -152,10 +86,6 @@ const getColumns = () =>
         );
       },
     }),
-
-    /* ---------------------------------------------------------------------- */
-    /* Created                                                                */
-    /* ---------------------------------------------------------------------- */
 
     columnHelper.accessor("createdAt", {
       header: "Created",
@@ -166,10 +96,6 @@ const getColumns = () =>
       ),
     }),
 
-    /* ---------------------------------------------------------------------- */
-    /* Actions                                                                */
-    /* ---------------------------------------------------------------------- */
-
     columnHelper.display({
       id: "actions",
       header: "Actions",
@@ -178,7 +104,6 @@ const getColumns = () =>
 
         return (
           <div className="flex items-center justify-end gap-1 whitespace-nowrap">
-            {/* View */}
             <Link
               href={`/contacts/${contact.id}`}
               title="View contact"
@@ -192,23 +117,11 @@ const getColumns = () =>
     }),
   ]);
 
-/* -------------------------------------------------------------------------- */
-/*                                Table Props                                 */
-/* -------------------------------------------------------------------------- */
-
 interface ContactsTableProps {
   data: Contact[];
 }
 
-/* -------------------------------------------------------------------------- */
-/*                              Contacts Table                                */
-/* -------------------------------------------------------------------------- */
-
 export function ContactsTable({ data }: ContactsTableProps) {
-  /* ------------------------------------------------------------------------ */
-  /*                                  Table                                   */
-  /* ------------------------------------------------------------------------ */
-
   const columns = getColumns();
 
   const table = useTable({
@@ -218,10 +131,6 @@ export function ContactsTable({ data }: ContactsTableProps) {
   });
 
   const rows = table.getRowModel().rows;
-
-  /* ------------------------------------------------------------------------ */
-  /*                                  Render                                  */
-  /* ------------------------------------------------------------------------ */
 
   return (
     <>

@@ -23,13 +23,9 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toast";
 
-import {
-  useUpdateUser,
-  useUser,
-  type RoleType,
-  type UpdateUserInput,
-  type User,
-} from "@/hooks/apis/useUsers";
+import { useUpdateUser, useUser } from "@/hooks/apis/useUsers";
+import { RoleType, UpdateUserInput, User } from "@/types/user.types";
+import Image from "next/image";
 
 /* -------------------------------------------------------------------------- */
 /*                                  Constants                                 */
@@ -416,7 +412,7 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
 
               <div className="relative flex size-28 shrink-0 items-center justify-center overflow-hidden border border-border bg-muted">
                 {photoPreview ? (
-                  <img
+                  <Image
                     src={photoPreview}
                     alt={`${user.username} profile`}
                     className="size-full object-cover"

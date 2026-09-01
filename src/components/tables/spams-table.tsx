@@ -22,61 +22,21 @@ import {
 
 import ConfirmationDialog from "@/components/common/confirmation-dialog";
 
-import { type Contact } from "@/hooks/apis/useContacts";
 import { useDeleteSpam, useRestoreSpam } from "@/hooks/apis/useSpams";
 
 import { toast } from "@/components/ui/toast";
-
-/* -------------------------------------------------------------------------- */
-/*                                  Helpers                                   */
-/* -------------------------------------------------------------------------- */
-
-const formatValue = (value: string | null | undefined) => {
-  if (!value) return "—";
-
-  return value
-    .replace(/\_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
-
-const formatDate = (value: string) => {
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
-};
-
-const statusStyles: Record<string, string> = {
-  SPAM: "bg-red-500/10 text-red-600",
-};
-
-/* -------------------------------------------------------------------------- */
-/*                                  Features                                  */
-/* -------------------------------------------------------------------------- */
+import { Contact } from "@/types/contact.types";
+import { contactStatusStyles, formatDate, formatValue } from "@/lib/helpers";
 
 const features = tableFeatures({});
 
-/* -------------------------------------------------------------------------- */
-/*                               Column Helper                                */
-/* -------------------------------------------------------------------------- */
-
 const columnHelper = createColumnHelper<typeof features, Contact>();
-
-/* -------------------------------------------------------------------------- */
-/*                                  Columns                                   */
-/* -------------------------------------------------------------------------- */
 
 const getColumns = (
   onDelete: (contact: Contact) => void,
   onRestore: (contact: Contact) => void,
 ) =>
   columnHelper.columns([
-    /* ---------------------------------------------------------------------- */
-    /* Name                                                                   */
-    /* ---------------------------------------------------------------------- */
-
     columnHelper.accessor("name", {
       header: "Name",
 
@@ -85,10 +45,6 @@ const getColumns = (
       ),
     }),
 
-    /* ---------------------------------------------------------------------- */
-    /* Company                                                                */
-    /* ---------------------------------------------------------------------- */
-
     columnHelper.accessor("company", {
       header: "Company",
 
@@ -96,10 +52,6 @@ const getColumns = (
         <span className="whitespace-nowrap">{getValue() || "—"}</span>
       ),
     }),
-
-    /* ---------------------------------------------------------------------- */
-    /* Email                                                                  */
-    /* ---------------------------------------------------------------------- */
 
     columnHelper.accessor("email", {
       header: "Email",
@@ -111,10 +63,6 @@ const getColumns = (
       ),
     }),
 
-    /* ---------------------------------------------------------------------- */
-    /* Phone                                                                  */
-    /* ---------------------------------------------------------------------- */
-
     columnHelper.accessor("phone", {
       header: "Phone",
 
@@ -122,10 +70,6 @@ const getColumns = (
         <span className="whitespace-nowrap">{getValue() || "—"}</span>
       ),
     }),
-
-    /* ---------------------------------------------------------------------- */
-    /* Industry                                                               */
-    /* ---------------------------------------------------------------------- */
 
     columnHelper.accessor("industry", {
       header: "Industry",
@@ -135,10 +79,6 @@ const getColumns = (
       ),
     }),
 
-    /* ---------------------------------------------------------------------- */
-    /* Project Type                                                           */
-    /* ---------------------------------------------------------------------- */
-
     columnHelper.accessor("projectType", {
       header: "Project Type",
 
@@ -146,10 +86,6 @@ const getColumns = (
         <span className="whitespace-nowrap">{formatValue(getValue())}</span>
       ),
     }),
-
-    /* ---------------------------------------------------------------------- */
-    /* Rejection Reason                                                       */
-    /* ---------------------------------------------------------------------- */
 
     columnHelper.accessor("rejectionReason", {
       header: "Reason",
@@ -161,10 +97,6 @@ const getColumns = (
       ),
     }),
 
-    /* ---------------------------------------------------------------------- */
-    /* Status                                                                 */
-    /* ---------------------------------------------------------------------- */
-
     columnHelper.accessor("status", {
       header: "Status",
 
@@ -174,7 +106,7 @@ const getColumns = (
         return (
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-              statusStyles[status] ?? "bg-muted text-muted-foreground"
+              contactStatusStyles[status] ?? "bg-muted text-muted-foreground"
             }`}
           >
             {formatValue(status)}
@@ -182,10 +114,6 @@ const getColumns = (
         );
       },
     }),
-
-    /* ---------------------------------------------------------------------- */
-    /* Rejected                                                               */
-    /* ---------------------------------------------------------------------- */
 
     columnHelper.accessor("rejectedAt", {
       header: "Rejected",
@@ -197,10 +125,6 @@ const getColumns = (
       ),
     }),
 
-    /* ---------------------------------------------------------------------- */
-    /* Actions                                                                */
-    /* ---------------------------------------------------------------------- */
-
     columnHelper.display({
       id: "actions",
 
@@ -211,7 +135,6 @@ const getColumns = (
 
         return (
           <div className="flex items-center justify-end gap-1 whitespace-nowrap">
-            {/* View */}
             <Link
               href={`/spams/${contact.id}`}
               title="View spam"
@@ -220,7 +143,6 @@ const getColumns = (
               <Eye className="size-4" />
             </Link>
 
-            {/* Restore */}
             <button
               type="button"
               title="Restore spam"
@@ -230,7 +152,6 @@ const getColumns = (
               <RotateCcw className="size-4" />
             </button>
 
-            {/* Delete */}
             <button
               type="button"
               title="Delete spam"
@@ -245,17 +166,9 @@ const getColumns = (
     }),
   ]);
 
-/* -------------------------------------------------------------------------- */
-/*                                Table Props                                 */
-/* -------------------------------------------------------------------------- */
-
 interface SpamsTableProps {
   data: Contact[];
 }
-
-/* -------------------------------------------------------------------------- */
-/*                                Spams Table                                 */
-/* -------------------------------------------------------------------------- */
 
 export function SpamsTable({ data }: SpamsTableProps) {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -263,10 +176,6 @@ export function SpamsTable({ data }: SpamsTableProps) {
 
   const deleteSpam = useDeleteSpam();
   const restoreSpam = useRestoreSpam();
-
-  /* ------------------------------------------------------------------------ */
-  /*                              Delete Handler                              */
-  /* ------------------------------------------------------------------------ */
 
   const handleDelete = (contact: Contact) => {
     setSelectedContact(contact);
@@ -295,10 +204,6 @@ export function SpamsTable({ data }: SpamsTableProps) {
     });
   };
 
-  /* ------------------------------------------------------------------------ */
-  /*                             Restore Handler                              */
-  /* ------------------------------------------------------------------------ */
-
   const handleRestore = (contact: Contact) => {
     setRestoreContact(contact);
   };
@@ -326,10 +231,6 @@ export function SpamsTable({ data }: SpamsTableProps) {
     });
   };
 
-  /* ------------------------------------------------------------------------ */
-  /*                                  Table                                   */
-  /* ------------------------------------------------------------------------ */
-
   const columns = getColumns(handleDelete, handleRestore);
 
   const table = useTable({
@@ -339,10 +240,6 @@ export function SpamsTable({ data }: SpamsTableProps) {
   });
 
   const rows = table.getRowModel().rows;
-
-  /* ------------------------------------------------------------------------ */
-  /*                                 Render                                   */
-  /* ------------------------------------------------------------------------ */
 
   return (
     <>
@@ -409,7 +306,6 @@ export function SpamsTable({ data }: SpamsTableProps) {
         </div>
       </div>
 
-      {/* Restore Confirmation */}
       <ConfirmationDialog
         open={Boolean(restoreContact)}
         onOpenChange={(open) => {
@@ -429,7 +325,6 @@ export function SpamsTable({ data }: SpamsTableProps) {
         isLoading={restoreSpam.isPending}
       />
 
-      {/* Delete Confirmation */}
       <ConfirmationDialog
         open={Boolean(selectedContact)}
         onOpenChange={(open) => {

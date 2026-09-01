@@ -1,0 +1,49 @@
+import type { BaseUser } from "./user.types";
+
+export interface SignUpInput {
+  username: string;
+  email: string;
+  password: string;
+  passwordConfirm: string;
+  photo?: string;
+}
+
+export interface SignInInput {
+  email: string;
+  password: string;
+}
+
+export interface ForgotPasswordInput {
+  email: string;
+}
+
+export interface ResetPasswordInput {
+  password: string;
+  passwordConfirm: string;
+  token: string;
+}
+
+export interface VerifyEmailInput {
+  token: string;
+}
+
+export interface AuthResponse {
+  status: "success";
+  token: string;
+  message?: string;
+  data: {
+    user: BaseUser;
+  };
+}
+
+export interface CurrentUserResponse {
+  status: "success";
+  data: {
+    user: BaseUser;
+  };
+}
+
+export interface MessageResponse {
+  status: "success";
+  message: string;
+}

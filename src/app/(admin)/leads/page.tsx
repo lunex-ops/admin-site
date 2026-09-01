@@ -1,6 +1,14 @@
-import { FolderKanban } from "lucide-react";
+"use client";
+
+import { LeadsTable } from "@/components/tables/leads-table";
+
+import { useLeads } from "@/hooks/apis/useLeads";
 
 const LeadsPage = () => {
+  const { data, isLoading, isError } = useLeads();
+
+  const leads = data?.data?.leads ?? [];
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -9,33 +17,41 @@ const LeadsPage = () => {
           Workspace
         </p>
 
-        <h1 className="text-3xl font-semibold">Leads</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Leads</h1>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          Manage and track your leads from one place.
+          Manage and track leads converted from your website contacts.
         </p>
       </div>
 
-      {/* Coming Soon */}
-      <div className="flex min-h-105 items-center justify-center border border-border bg-card p-8">
-        <div className="max-w-md text-center">
-          <div className="mx-auto mb-6 flex size-14 items-center justify-center border border-border bg-muted/50">
-            <FolderKanban className="size-6 text-muted-foreground" />
+      {/* Loading State */}
+      {isLoading && (
+        <div className="space-y-4">
+          <div className="h-14 animate-pulse border border-border bg-muted/30" />
+
+          <div className="border border-border bg-card">
+            <div className="divide-y divide-border">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="h-16 animate-pulse bg-muted/20" />
+              ))}
+            </div>
           </div>
+        </div>
+      )}
 
-          <div className="mb-3 inline-flex items-center border border-border px-3 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Coming Soon
-          </div>
+      {/* Error State */}
+      {isError && (
+        <div className="flex min-h-48 flex-col items-center justify-center border border-border bg-card p-6 text-center">
+          <p className="text-sm font-medium">Unable to load leads</p>
 
-          <h2 className="text-2xl font-semibold">Leads are on the way</h2>
-
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            We&apos;re working on lead management tools that will help you
-            organize projects, track progress, manage clients, and keep
-            everything in one place.
+          <p className="mt-1 text-xs text-muted-foreground">
+            Please try refreshing the page.
           </p>
         </div>
-      </div>
+      )}
+
+      {/* Leads */}
+      {!isLoading && !isError && <LeadsTable data={leads} />}
     </div>
   );
 };

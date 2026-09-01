@@ -1,167 +1,27 @@
 "use client";
 
-import { authenticatedApi } from "@/config/axiosConfig";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-/* -------------------------------------------------------------------------- */
-/*                                    Types                                   */
-/* -------------------------------------------------------------------------- */
+import { authenticatedApi } from "@/config/axiosConfig";
+import {
+  ContactResponse,
+  ContactsResponse,
+  CreateContactInput,
+  UpdateContactMutationVariables,
+} from "@/types/contact.types";
 
-export type ContactStatus = "NEW" | "CONVERTED" | "SPAM";
-
-export type ProjectType =
-  | "WEBSITE"
-  | "WEB_APPLICATION"
-  | "SAAS_MVP"
-  | "EXISTING_PRODUCT"
-  | "ONGOING_DEVELOPMENT"
-  | "NOT_SURE";
-
-export type LeadStatus =
-  | "NEW"
-  | "CONTACTED"
-  | "QUALIFIED"
-  | "PROPOSAL"
-  | "WON"
-  | "LOST";
-
-/* -------------------------------------------------------------------------- */
-/*                                  Lead Type                                 */
-/* -------------------------------------------------------------------------- */
-
-export interface ContactLead {
-  id: string;
-  contactId: string;
-
-  status: LeadStatus;
-
-  assignedToId: string | null;
-
-  estimatedValue: number | string | null;
-
-  lastContactedAt: string | null;
-  nextFollowUpAt: string | null;
-
-  notes: string | null;
-
-  createdAt: string;
-  updatedAt: string;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                Contact Type                                */
-/* -------------------------------------------------------------------------- */
-
-export interface Contact {
-  id: string;
-
-  name: string;
-  email: string;
-  phone: string | null;
-
-  company: string | null;
-  website: string | null;
-  industry: string | null;
-
-  projectType: ProjectType;
-
-  budget: string | null;
-  timeline: string | null;
-  projectDetails: string;
-
-  referral: string | null;
-
-  status: ContactStatus;
-
-  rejectionReason: string | null;
-  rejectedAt: string | null;
-
-  createdAt: string;
-  updatedAt: string;
-
-  /**
-   * A contact may or may not have been converted into a lead.
-   */
-  lead: ContactLead | null;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                              Create Contact                                */
-/* -------------------------------------------------------------------------- */
-
-export interface CreateContactInput {
-  name: string;
-  email: string;
-
-  phone?: string;
-
-  company?: string;
-  website?: string;
-  industry?: string;
-
-  projectType?: ProjectType;
-
-  budget?: string;
-  timeline?: string;
-  projectDetails: string;
-
-  referral?: string;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                              Update Contact                                */
-/* -------------------------------------------------------------------------- */
-
-export interface UpdateContactInput {
-  name?: string;
-  email?: string;
-
-  phone?: string | null;
-
-  company?: string | null;
-  website?: string | null;
-  industry?: string | null;
-
-  projectType?: ProjectType;
-
-  budget?: string | null;
-  timeline?: string | null;
-  projectDetails?: string;
-
-  referral?: string | null;
-
-  status?: ContactStatus;
-  rejectionReason?: string | null;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                Responses                                   */
-/* -------------------------------------------------------------------------- */
-
-interface ContactsResponse {
-  status: "success";
-  results: number;
-  data: {
-    contacts: Contact[];
-  };
-}
-
-interface ContactResponse {
-  status: "success";
-  data: {
-    contact: Contact;
-  };
-}
-
-/* -------------------------------------------------------------------------- */
-/*                              Get Contacts                                  */
-/* -------------------------------------------------------------------------- */
+export const contactKeys = {
+  all: ["contacts"] as const,
+  lists: () => [...contactKeys.all, "list"] as const,
+  list: () => [...contactKeys.lists()] as const,
+  details: () => [...contactKeys.all, "detail"] as const,
+  detail: (id: string) => [...contactKeys.details(), id] as const,
+};
 
 export const useContacts = () => {
-  return useQuery({
-    queryKey: ["contacts"],
-
-    queryFn: async (): Promise<ContactsResponse> => {
+  return useQuery<ContactsResponse>({
+    queryKey: contactKeys.list(),
+    queryFn: async () => {
       const { data } =
         await authenticatedApi.get<ContactsResponse>("/contacts");
 
@@ -170,37 +30,25 @@ export const useContacts = () => {
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                           Get Contact By ID                                */
-/* -------------------------------------------------------------------------- */
-
 export const useContact = (id: string) => {
-  return useQuery({
-    queryKey: ["contacts", id],
-
-    queryFn: async (): Promise<ContactResponse> => {
+  return useQuery<ContactResponse>({
+    queryKey: contactKeys.detail(id),
+    queryFn: async () => {
       const { data } = await authenticatedApi.get<ContactResponse>(
         `/contacts/${id}`,
       );
 
       return data;
     },
-
     enabled: Boolean(id),
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Create Contact                                */
-/* -------------------------------------------------------------------------- */
-
 export const useCreateContact = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (
-      payload: CreateContactInput,
-    ): Promise<ContactResponse> => {
+  return useMutation<ContactResponse, Error, CreateContactInput>({
+    mutationFn: async (payload) => {
       const { data } = await authenticatedApi.post<ContactResponse>(
         "/contacts",
         payload,
@@ -211,27 +59,17 @@ export const useCreateContact = () => {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["contacts"],
+        queryKey: contactKeys.all,
       });
     },
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Update Contact                                */
-/* -------------------------------------------------------------------------- */
-
 export const useUpdateContact = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      id,
-      payload,
-    }: {
-      id: string;
-      payload: UpdateContactInput;
-    }): Promise<ContactResponse> => {
+  return useMutation<ContactResponse, Error, UpdateContactMutationVariables>({
+    mutationFn: async ({ id, payload }) => {
       const { data } = await authenticatedApi.patch<ContactResponse>(
         `/contacts/${id}`,
         payload,
@@ -241,24 +79,20 @@ export const useUpdateContact = () => {
     },
 
     onSuccess: (response, variables) => {
-      queryClient.setQueryData(["contacts", variables.id], response);
+      queryClient.setQueryData(contactKeys.detail(variables.id), response);
 
       queryClient.invalidateQueries({
-        queryKey: ["contacts"],
+        queryKey: contactKeys.all,
       });
     },
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Accept Contact                                */
-/* -------------------------------------------------------------------------- */
-
 export const useAcceptContact = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (id: string): Promise<ContactResponse> => {
+  return useMutation<ContactResponse, Error, string>({
+    mutationFn: async (id) => {
       const { data } = await authenticatedApi.post<ContactResponse>(
         `/contacts/${id}/accept`,
       );
@@ -267,30 +101,27 @@ export const useAcceptContact = () => {
     },
 
     onSuccess: (response, id) => {
-      queryClient.setQueryData(["contacts", id], response);
+      queryClient.setQueryData(contactKeys.detail(id), response);
 
       queryClient.invalidateQueries({
-        queryKey: ["contacts"],
+        queryKey: contactKeys.all,
       });
     },
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Reject Contact                                */
-/* -------------------------------------------------------------------------- */
-
 export const useRejectContact = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      id,
-      rejectionReason,
-    }: {
+  return useMutation<
+    ContactResponse,
+    Error,
+    {
       id: string;
       rejectionReason: string;
-    }): Promise<ContactResponse> => {
+    }
+  >({
+    mutationFn: async ({ id, rejectionReason }) => {
       const { data } = await authenticatedApi.post<ContactResponse>(
         `/contacts/${id}/reject`,
         {
@@ -302,10 +133,10 @@ export const useRejectContact = () => {
     },
 
     onSuccess: (response, variables) => {
-      queryClient.setQueryData(["contacts", variables.id], response);
+      queryClient.setQueryData(contactKeys.detail(variables.id), response);
 
       queryClient.invalidateQueries({
-        queryKey: ["contacts"],
+        queryKey: contactKeys.all,
       });
     },
   });

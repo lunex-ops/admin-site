@@ -21,17 +21,9 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { toast } from "@/components/ui/toast";
 
-import {
-  useContact,
-  useUpdateContact,
-  type Contact,
-  type ProjectType,
-  type UpdateContactInput,
-} from "@/hooks/apis/useContacts";
-
-/* -------------------------------------------------------------------------- */
-/*                                Validation                                  */
-/* -------------------------------------------------------------------------- */
+import { useContact, useUpdateContact } from "@/hooks/apis/useContacts";
+import { Contact, UpdateContactInput } from "@/types/contact.types";
+import { ProjectType } from "@/types/common.types";
 
 const projectTypes = [
   {
@@ -97,10 +89,6 @@ const editContactSchema = z.object({
 
 type EditContactFormValues = z.infer<typeof editContactSchema>;
 
-/* -------------------------------------------------------------------------- */
-/*                                  Helpers                                   */
-/* -------------------------------------------------------------------------- */
-
 const getDefaultValues = (contact: Contact): EditContactFormValues => ({
   name: contact.name,
   company: contact.company ?? "",
@@ -115,10 +103,6 @@ const getDefaultValues = (contact: Contact): EditContactFormValues => ({
   referral: contact.referral ?? "",
 });
 
-/* -------------------------------------------------------------------------- */
-/*                              Form Field                                    */
-/* -------------------------------------------------------------------------- */
-
 interface FieldErrorProps {
   message?: string;
 }
@@ -128,10 +112,6 @@ const FieldError = ({ message }: FieldErrorProps) => {
 
   return <p className="text-xs text-danger">{message}</p>;
 };
-
-/* -------------------------------------------------------------------------- */
-/*                           Edit Contact Form                                */
-/* -------------------------------------------------------------------------- */
 
 interface EditContactFormProps {
   contact: Contact;
@@ -198,10 +178,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
       <div className="space-y-6">
-        {/* ---------------------------------------------------------------- */}
-        {/* Contact Information                                               */}
-        {/* ---------------------------------------------------------------- */}
-
         <Card>
           <CardHeader>
             <CardTitle>Contact Information</CardTitle>
@@ -213,7 +189,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
 
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
-              {/* Name */}
               <div className="space-y-2">
                 <label htmlFor="name" className="text-sm font-medium">
                   Name
@@ -229,7 +204,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
                 <FieldError message={errors.name?.message} />
               </div>
 
-              {/* Company */}
               <div className="space-y-2">
                 <label htmlFor="company" className="text-sm font-medium">
                   Company
@@ -245,7 +219,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
                 <FieldError message={errors.company?.message} />
               </div>
 
-              {/* Email */}
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium">
                   Email
@@ -262,7 +235,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
                 <FieldError message={errors.email?.message} />
               </div>
 
-              {/* Phone */}
               <div className="space-y-2">
                 <label htmlFor="phone" className="text-sm font-medium">
                   Phone
@@ -279,7 +251,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
                 <FieldError message={errors.phone?.message} />
               </div>
 
-              {/* Website */}
               <div className="space-y-2">
                 <label htmlFor="website" className="text-sm font-medium">
                   Website
@@ -296,7 +267,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
                 <FieldError message={errors.website?.message} />
               </div>
 
-              {/* Industry */}
               <div className="space-y-2">
                 <label htmlFor="industry" className="text-sm font-medium">
                   Industry
@@ -315,10 +285,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
           </CardContent>
         </Card>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Project Information                                               */}
-        {/* ---------------------------------------------------------------- */}
-
         <Card>
           <CardHeader>
             <CardTitle>Project Information</CardTitle>
@@ -330,7 +296,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
 
           <CardContent className="space-y-6">
             <div className="grid gap-6 md:grid-cols-3">
-              {/* Project Type */}
               <div className="space-y-2.5">
                 <label htmlFor="budget" className="text-sm font-medium">
                   Project Type
@@ -367,7 +332,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
                 <FieldError message={errors.projectType?.message} />
               </div>
 
-              {/* Budget */}
               <div className="space-y-2">
                 <label htmlFor="budget" className="text-sm font-medium">
                   Budget
@@ -383,7 +347,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
                 <FieldError message={errors.budget?.message} />
               </div>
 
-              {/* Timeline */}
               <div className="space-y-2">
                 <label htmlFor="timeline" className="text-sm font-medium">
                   Timeline
@@ -400,7 +363,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
               </div>
             </div>
 
-            {/* Project Details */}
             <div className="space-y-2">
               <label htmlFor="projectDetails" className="text-sm font-medium">
                 Project Details
@@ -418,10 +380,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
             </div>
           </CardContent>
         </Card>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Additional Information                                            */}
-        {/* ---------------------------------------------------------------- */}
 
         <Card>
           <CardHeader>
@@ -450,10 +408,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
           </CardContent>
         </Card>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Actions                                                            */}
-        {/* ---------------------------------------------------------------- */}
-
         <div className="flex flex-col-reverse gap-2 border-t border-border pt-6 sm:flex-row sm:justify-end">
           <Button
             type="button"
@@ -475,10 +429,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Edit Contact Page                             */
-/* -------------------------------------------------------------------------- */
-
 const EditContactPage = () => {
   const params = useParams();
 
@@ -487,10 +437,6 @@ const EditContactPage = () => {
   const { data, isLoading, isError } = useContact(id);
 
   const contact = data?.data?.contact;
-
-  /* ------------------------------------------------------------------------ */
-  /* Loading                                                                  */
-  /* ------------------------------------------------------------------------ */
 
   if (isLoading) {
     return (
@@ -512,10 +458,6 @@ const EditContactPage = () => {
     );
   }
 
-  /* ------------------------------------------------------------------------ */
-  /* Error                                                                    */
-  /* ------------------------------------------------------------------------ */
-
   if (isError || !contact) {
     return (
       <div className="flex min-h-64 flex-col items-center justify-center text-center">
@@ -536,13 +478,8 @@ const EditContactPage = () => {
     );
   }
 
-  /* ------------------------------------------------------------------------ */
-  /* Render                                                                   */
-  /* ------------------------------------------------------------------------ */
-
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div>
         <Link
           href={`/contacts/${contact.id}`}
@@ -567,7 +504,6 @@ const EditContactPage = () => {
         </div>
       </div>
 
-      {/* Form */}
       <EditContactForm
         key={`${contact.id}-${contact.updatedAt}`}
         contact={contact}

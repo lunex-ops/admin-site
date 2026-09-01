@@ -1,42 +1,27 @@
 "use client";
 
-import { authenticatedApi } from "@/config/axiosConfig";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { Contact } from "./useContacts";
+import { authenticatedApi } from "@/config/axiosConfig";
 
-/* -------------------------------------------------------------------------- */
-/*                                Responses                                   */
-/* -------------------------------------------------------------------------- */
+import type {
+  DeleteSpamResponse,
+  SpamResponse,
+  SpamsResponse,
+} from "@/types/spam.types";
 
-interface SpamsResponse {
-  status: "success";
-  results: number;
-  data: {
-    contacts: Contact[];
-  };
-}
-
-interface SpamResponse {
-  status: "success";
-  data: {
-    contact: Contact;
-  };
-}
-
-interface DeleteSpamResponse {
-  status: "success";
-  message: string;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                Get Spams                                   */
-/* -------------------------------------------------------------------------- */
+export const spamKeys = {
+  all: ["spams"] as const,
+  lists: () => [...spamKeys.all, "list"] as const,
+  list: () => [...spamKeys.lists()] as const,
+  details: () => [...spamKeys.all, "detail"] as const,
+  detail: (id: string) => [...spamKeys.details(), id] as const,
+};
 
 export const useSpams = () => {
-  return useQuery({
-    queryKey: ["spams"],
-    queryFn: async (): Promise<SpamsResponse> => {
+  return useQuery<SpamsResponse>({
+    queryKey: spamKeys.list(),
+    queryFn: async () => {
       const { data } = await authenticatedApi.get<SpamsResponse>("/spams");
 
       return data;
@@ -44,14 +29,10 @@ export const useSpams = () => {
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                             Get Spam By ID                                 */
-/* -------------------------------------------------------------------------- */
-
 export const useSpam = (id: string) => {
-  return useQuery({
-    queryKey: ["spams", id],
-    queryFn: async (): Promise<SpamResponse> => {
+  return useQuery<SpamResponse>({
+    queryKey: spamKeys.detail(id),
+    queryFn: async () => {
       const { data } = await authenticatedApi.get<SpamResponse>(`/spams/${id}`);
 
       return data;
@@ -60,15 +41,11 @@ export const useSpam = (id: string) => {
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Restore Spam                                  */
-/* -------------------------------------------------------------------------- */
-
 export const useRestoreSpam = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (id: string): Promise<SpamResponse> => {
+  return useMutation<SpamResponse, Error, string>({
+    mutationFn: async (id) => {
       const { data } = await authenticatedApi.post<SpamResponse>(
         `/spams/${id}/restore`,
       );
@@ -77,10 +54,10 @@ export const useRestoreSpam = () => {
     },
 
     onSuccess: (response, id) => {
-      queryClient.setQueryData(["spams", id], response);
+      queryClient.setQueryData(spamKeys.detail(id), response);
 
       queryClient.invalidateQueries({
-        queryKey: ["spams"],
+        queryKey: spamKeys.all,
       });
 
       queryClient.invalidateQueries({
@@ -90,15 +67,11 @@ export const useRestoreSpam = () => {
   });
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Delete Spam                                   */
-/* -------------------------------------------------------------------------- */
-
 export const useDeleteSpam = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (id: string): Promise<DeleteSpamResponse> => {
+  return useMutation<DeleteSpamResponse, Error, string>({
+    mutationFn: async (id) => {
       const { data } = await authenticatedApi.delete<DeleteSpamResponse>(
         `/spams/${id}`,
       );
@@ -108,11 +81,11 @@ export const useDeleteSpam = () => {
 
     onSuccess: (_, id) => {
       queryClient.removeQueries({
-        queryKey: ["spams", id],
+        queryKey: spamKeys.detail(id),
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["spams"],
+        queryKey: spamKeys.all,
       });
     },
   });
