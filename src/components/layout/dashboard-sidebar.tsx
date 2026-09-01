@@ -51,8 +51,8 @@ const navigation = [
     icon: UserRoundPlus,
   },
   {
-    title: "Spam",
-    href: "/spam",
+    title: "Spams",
+    href: "/spams",
     icon: ShieldAlert,
   },
   {
