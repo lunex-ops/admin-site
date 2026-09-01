@@ -1,20 +1,137 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Save } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { ArrowLeft, Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+
 import { toast } from "@/components/ui/toast";
 
 import {
   useContact,
   useUpdateContact,
   type Contact,
+  type ProjectType,
+  type UpdateContactInput,
 } from "@/hooks/apis/useContacts";
+
+/* -------------------------------------------------------------------------- */
+/*                                Validation                                  */
+/* -------------------------------------------------------------------------- */
+
+const projectTypes = [
+  {
+    value: "WEBSITE",
+    label: "Website",
+  },
+  {
+    value: "WEB_APPLICATION",
+    label: "Web Application",
+  },
+  {
+    value: "SAAS_MVP",
+    label: "SaaS / MVP",
+  },
+  {
+    value: "EXISTING_PRODUCT",
+    label: "Existing Product",
+  },
+  {
+    value: "ONGOING_DEVELOPMENT",
+    label: "Ongoing Development",
+  },
+  {
+    value: "NOT_SURE",
+    label: "Not Sure",
+  },
+] as const;
+
+const editContactSchema = z.object({
+  name: z.string().trim().min(1, "Name is required"),
+
+  company: z.string().trim().nullable().or(z.literal("")),
+
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email is required")
+    .email("Enter a valid email address"),
+
+  phone: z.string().trim().nullable().or(z.literal("")),
+
+  website: z.string().trim().url("Enter a valid website URL").or(z.literal("")),
+
+  industry: z.string().trim().nullable().or(z.literal("")),
+
+  projectType: z.enum([
+    "WEBSITE",
+    "WEB_APPLICATION",
+    "SAAS_MVP",
+    "EXISTING_PRODUCT",
+    "ONGOING_DEVELOPMENT",
+    "NOT_SURE",
+  ]),
+
+  budget: z.string().trim().nullable().or(z.literal("")),
+
+  timeline: z.string().trim().nullable().or(z.literal("")),
+
+  projectDetails: z.string().trim().min(1, "Project details are required"),
+
+  referral: z.string().trim().nullable().or(z.literal("")),
+});
+
+type EditContactFormValues = z.infer<typeof editContactSchema>;
+
+/* -------------------------------------------------------------------------- */
+/*                                  Helpers                                   */
+/* -------------------------------------------------------------------------- */
+
+const getDefaultValues = (contact: Contact): EditContactFormValues => ({
+  name: contact.name,
+  company: contact.company ?? "",
+  email: contact.email,
+  phone: contact.phone ?? "",
+  website: contact.website ?? "",
+  industry: contact.industry ?? "",
+  projectType: contact.projectType,
+  budget: contact.budget ?? "",
+  timeline: contact.timeline ?? "",
+  projectDetails: contact.projectDetails ?? "",
+  referral: contact.referral ?? "",
+});
+
+/* -------------------------------------------------------------------------- */
+/*                              Form Field                                    */
+/* -------------------------------------------------------------------------- */
+
+interface FieldErrorProps {
+  message?: string;
+}
+
+const FieldError = ({ message }: FieldErrorProps) => {
+  if (!message) return null;
+
+  return <p className="text-xs text-danger">{message}</p>;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                           Edit Contact Form                                */
+/* -------------------------------------------------------------------------- */
 
 interface EditContactFormProps {
   contact: Contact;
@@ -24,43 +141,38 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
   const router = useRouter();
   const updateContact = useUpdateContact();
 
-  const [form, setForm] = useState({
-    name: contact.name,
-    company: contact.company,
-    email: contact.email,
-    website: contact.website ?? "",
-    projectType: contact.projectType,
-    budget: contact.budget ?? "",
-    timeline: contact.timeline ?? "",
-    projectDetails: contact.projectDetails ?? "",
-    referral: contact.referral ?? "",
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<EditContactFormValues>({
+    resolver: zodResolver(editContactSchema),
+    defaultValues: getDefaultValues(contact),
   });
 
-  const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = event.target;
+  const projectType = watch("projectType");
 
-    setForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleFormSubmit = (values: EditContactFormValues) => {
+    const payload: UpdateContactInput = {
+      name: values.name,
+      company: values.company || null,
+      email: values.email,
+      phone: values.phone || null,
+      website: values.website || null,
+      industry: values.industry || null,
+      projectType: values.projectType as ProjectType,
+      budget: values.budget || null,
+      timeline: values.timeline || null,
+      projectDetails: values.projectDetails,
+      referral: values.referral || null,
+    };
 
     updateContact.mutate(
       {
         id: contact.id,
-        payload: {
-          ...form,
-          website: form.website || undefined,
-          budget: form.budget || undefined,
-          timeline: form.timeline || undefined,
-          projectDetails: form.projectDetails || undefined,
-          referral: form.referral || undefined,
-        },
+        payload,
       },
       {
         onSuccess: () => {
@@ -84,166 +196,288 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Contact Information</CardTitle>
-        </CardHeader>
+    <form onSubmit={handleSubmit(handleFormSubmit)}>
+      <div className="space-y-6">
+        {/* ---------------------------------------------------------------- */}
+        {/* Contact Information                                               */}
+        {/* ---------------------------------------------------------------- */}
 
-        <CardContent className="space-y-6">
-          {/* Basic Information */}
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium">
-                Name
-              </label>
+        <Card>
+          <CardHeader>
+            <CardTitle>Contact Information</CardTitle>
 
-              <Input
-                id="name"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                required
-              />
+            <p className="text-sm text-muted-foreground">
+              Update the primary contact and company information.
+            </p>
+          </CardHeader>
+
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Name */}
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium">
+                  Name
+                </label>
+
+                <Input
+                  id="name"
+                  {...register("name")}
+                  placeholder="Contact name"
+                  aria-invalid={!!errors.name}
+                />
+
+                <FieldError message={errors.name?.message} />
+              </div>
+
+              {/* Company */}
+              <div className="space-y-2">
+                <label htmlFor="company" className="text-sm font-medium">
+                  Company
+                </label>
+
+                <Input
+                  id="company"
+                  {...register("company")}
+                  placeholder="Company name"
+                  aria-invalid={!!errors.company}
+                />
+
+                <FieldError message={errors.company?.message} />
+              </div>
+
+              {/* Email */}
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium">
+                  Email
+                </label>
+
+                <Input
+                  id="email"
+                  type="email"
+                  {...register("email")}
+                  placeholder="contact@example.com"
+                  aria-invalid={!!errors.email}
+                />
+
+                <FieldError message={errors.email?.message} />
+              </div>
+
+              {/* Phone */}
+              <div className="space-y-2">
+                <label htmlFor="phone" className="text-sm font-medium">
+                  Phone
+                </label>
+
+                <Input
+                  id="phone"
+                  type="tel"
+                  {...register("phone")}
+                  placeholder="+1 555 123 4567"
+                  aria-invalid={!!errors.phone}
+                />
+
+                <FieldError message={errors.phone?.message} />
+              </div>
+
+              {/* Website */}
+              <div className="space-y-2">
+                <label htmlFor="website" className="text-sm font-medium">
+                  Website
+                </label>
+
+                <Input
+                  id="website"
+                  type="url"
+                  {...register("website")}
+                  placeholder="https://example.com"
+                  aria-invalid={!!errors.website}
+                />
+
+                <FieldError message={errors.website?.message} />
+              </div>
+
+              {/* Industry */}
+              <div className="space-y-2">
+                <label htmlFor="industry" className="text-sm font-medium">
+                  Industry
+                </label>
+
+                <Input
+                  id="industry"
+                  {...register("industry")}
+                  placeholder="e.g. Health & Wellness"
+                  aria-invalid={!!errors.industry}
+                />
+
+                <FieldError message={errors.industry?.message} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Project Information                                               */}
+        {/* ---------------------------------------------------------------- */}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Project Information</CardTitle>
+
+            <p className="text-sm text-muted-foreground">
+              Update the project requirements and commercial details.
+            </p>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-3">
+              {/* Project Type */}
+              <div className="space-y-2.5">
+                <label htmlFor="budget" className="text-sm font-medium">
+                  Project Type
+                </label>
+
+                <Select
+                  value={projectType}
+                  onValueChange={(value) =>
+                    setValue("projectType", value as ProjectType, {
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  <SelectTrigger
+                    aria-invalid={!!errors.projectType}
+                    className="h-11 w-full rounded-md border-border bg-background px-3 text-sm shadow-sm transition-colors hover:border-primary/50 focus:ring-2 focus:ring-primary/20 data-placeholder:text-muted-foreground"
+                  >
+                    <SelectValue placeholder="Choose a project type" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {projectTypes.map((type) => (
+                      <SelectItem
+                        key={type.value}
+                        value={type.value}
+                        className="cursor-pointer"
+                      >
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <FieldError message={errors.projectType?.message} />
+              </div>
+
+              {/* Budget */}
+              <div className="space-y-2">
+                <label htmlFor="budget" className="text-sm font-medium">
+                  Budget
+                </label>
+
+                <Input
+                  id="budget"
+                  {...register("budget")}
+                  placeholder="$10,000 - $20,000"
+                  aria-invalid={!!errors.budget}
+                />
+
+                <FieldError message={errors.budget?.message} />
+              </div>
+
+              {/* Timeline */}
+              <div className="space-y-2">
+                <label htmlFor="timeline" className="text-sm font-medium">
+                  Timeline
+                </label>
+
+                <Input
+                  id="timeline"
+                  {...register("timeline")}
+                  placeholder="2-3 months"
+                  aria-invalid={!!errors.timeline}
+                />
+
+                <FieldError message={errors.timeline?.message} />
+              </div>
             </div>
 
+            {/* Project Details */}
             <div className="space-y-2">
-              <label htmlFor="company" className="text-sm font-medium">
-                Company
+              <label htmlFor="projectDetails" className="text-sm font-medium">
+                Project Details
               </label>
 
-              <Input
-                id="company"
-                name="company"
-                value={form.company}
-                onChange={handleChange}
-                required
+              <Textarea
+                id="projectDetails"
+                {...register("projectDetails")}
+                rows={7}
+                placeholder="Describe the project requirements..."
+                aria-invalid={!!errors.projectDetails}
               />
+
+              <FieldError message={errors.projectDetails?.message} />
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
+        {/* ---------------------------------------------------------------- */}
+        {/* Additional Information                                            */}
+        {/* ---------------------------------------------------------------- */}
 
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Information</CardTitle>
 
-            <div className="space-y-2">
-              <label htmlFor="website" className="text-sm font-medium">
-                Website
-              </label>
+            <p className="text-sm text-muted-foreground">
+              Update additional information about how this contact found you.
+            </p>
+          </CardHeader>
 
-              <Input
-                id="website"
-                name="website"
-                type="url"
-                value={form.website}
-                onChange={handleChange}
-                placeholder="https://example.com"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="projectType" className="text-sm font-medium">
-                Project Type
-              </label>
-
-              <Input
-                id="projectType"
-                name="projectType"
-                value={form.projectType}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="budget" className="text-sm font-medium">
-                Budget
-              </label>
-
-              <Input
-                id="budget"
-                name="budget"
-                value={form.budget}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="timeline" className="text-sm font-medium">
-                Timeline
-              </label>
-
-              <Input
-                id="timeline"
-                name="timeline"
-                value={form.timeline}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="space-y-2">
+          <CardContent>
+            <div className="max-w-md space-y-2">
               <label htmlFor="referral" className="text-sm font-medium">
-                Referral
+                Referral Source
               </label>
 
               <Input
                 id="referral"
-                name="referral"
-                value={form.referral}
-                onChange={handleChange}
+                {...register("referral")}
+                placeholder="e.g. Google, Instagram, Referral"
+                aria-invalid={!!errors.referral}
               />
+
+              <FieldError message={errors.referral?.message} />
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Project Details */}
-          <div className="space-y-2">
-            <label htmlFor="projectDetails" className="text-sm font-medium">
-              Project Details
-            </label>
+        {/* ---------------------------------------------------------------- */}
+        {/* Actions                                                            */}
+        {/* ---------------------------------------------------------------- */}
 
-            <textarea
-              id="projectDetails"
-              name="projectDetails"
-              value={form.projectDetails}
-              onChange={handleChange}
-              rows={6}
-              className="flex w-full border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
-              placeholder="Project details..."
-            />
-          </div>
+        <div className="flex flex-col-reverse gap-2 border-t border-border pt-6 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push(`/contacts/${contact.id}`)}
+            disabled={updateContact.isPending}
+          >
+            Cancel
+          </Button>
 
-          {/* Actions */}
-          <div className="flex flex-col-reverse gap-2 border-t border-border pt-6 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push(`/contacts/${contact.id}`)}
-              disabled={updateContact.isPending}
-            >
-              Cancel
-            </Button>
+          <Button type="submit" disabled={updateContact.isPending}>
+            <Save className="size-4" />
 
-            <Button type="submit" disabled={updateContact.isPending}>
-              <Save className="size-4" />
-
-              {updateContact.isPending ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            {updateContact.isPending ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      </div>
     </form>
   );
 };
+
+/* -------------------------------------------------------------------------- */
+/*                              Edit Contact Page                             */
+/* -------------------------------------------------------------------------- */
 
 const EditContactPage = () => {
   const params = useParams();
@@ -252,70 +486,92 @@ const EditContactPage = () => {
 
   const { data, isLoading, isError } = useContact(id);
 
+  const contact = data?.data?.contact;
+
+  /* ------------------------------------------------------------------------ */
+  /* Loading                                                                  */
+  /* ------------------------------------------------------------------------ */
+
   if (isLoading) {
     return (
       <div className="space-y-8">
         <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            Contacts
-          </p>
+          <div className="h-4 w-24 animate-pulse bg-muted" />
 
-          <h1 className="text-3xl font-semibold">Edit Contact</h1>
+          <div className="mt-4 h-9 w-48 animate-pulse bg-muted" />
+
+          <div className="mt-3 h-4 w-72 animate-pulse bg-muted" />
         </div>
 
-        <div className="border border-border bg-card p-6">
-          <p className="text-sm text-muted-foreground">Loading contact...</p>
+        <div className="space-y-6">
+          <div className="h-96 animate-pulse border border-border bg-muted/30" />
+
+          <div className="h-80 animate-pulse border border-border bg-muted/30" />
         </div>
       </div>
     );
   }
 
-  if (isError || !data?.data) {
+  /* ------------------------------------------------------------------------ */
+  /* Error                                                                    */
+  /* ------------------------------------------------------------------------ */
+
+  if (isError || !contact) {
     return (
-      <div className="space-y-8">
-        <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            Contacts
-          </p>
+      <div className="flex min-h-64 flex-col items-center justify-center text-center">
+        <p className="text-sm font-medium">Unable to load contact</p>
 
-          <h1 className="text-3xl font-semibold">Edit Contact</h1>
-        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          The contact may no longer exist or could not be loaded.
+        </p>
 
-        <div className="border border-danger/30 bg-danger/5 p-6">
-          <p className="text-sm text-danger">Unable to load this contact.</p>
-        </div>
+        <Link
+          href="/contacts"
+          className="mt-5 inline-flex items-center gap-2 text-sm font-medium hover:underline"
+        >
+          <ArrowLeft className="size-4" />
+          Back to Contacts
+        </Link>
       </div>
     );
   }
 
-  const contact = data.data;
+  /* ------------------------------------------------------------------------ */
+  /* Render                                                                   */
+  /* ------------------------------------------------------------------------ */
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <Link
+          href={`/contacts/${contact.id}`}
+          className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" />
+          Back to Contact
+        </Link>
+
         <div>
           <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
             Contacts
           </p>
 
-          <h1 className="text-3xl font-semibold">Edit Contact</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Edit Contact
+          </h1>
 
           <p className="mt-2 text-sm text-muted-foreground">
-            Update the contact information below.
+            Update the information for {contact.name}.
           </p>
         </div>
-
-        <Button variant="outline">
-          <Link href={`/contacts/${id}`}>
-            <ArrowLeft className="size-4" />
-            Back
-          </Link>
-        </Button>
       </div>
 
       {/* Form */}
-      <EditContactForm key={contact.id + contact.updatedAt} contact={contact} />
+      <EditContactForm
+        key={`${contact.id}-${contact.updatedAt}`}
+        contact={contact}
+      />
     </div>
   );
 };

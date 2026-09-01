@@ -15,7 +15,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-const formatCurrency = (value: number) => {
+const formatCurrency = (value: number | null | undefined) => {
+  if (value == null) return "—";
+
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -23,12 +25,40 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-const formatDate = (date: string) => {
+const formatDate = (date: string | null | undefined) => {
+  if (!date) return "—";
+
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   }).format(new Date(date));
+};
+
+const formatDateTime = (date: string | null | undefined) => {
+  if (!date) return "—";
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(date));
+};
+
+const formatProjectType = (value: string) => {
+  return value
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+const formatStatus = (value: string) => {
+  return value
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
 const statusStyles: Record<string, string> = {
@@ -37,6 +67,7 @@ const statusStyles: Record<string, string> = {
   QUALIFIED: "bg-purple-500/10 text-purple-600",
   WON: "bg-green-500/10 text-green-600",
   LOST: "bg-red-500/10 text-red-600",
+  SPAM: "bg-red-500/10 text-red-600",
 };
 
 const DashboardPage = () => {
@@ -233,7 +264,7 @@ const DashboardPage = () => {
                           "bg-muted text-muted-foreground"
                         }`}
                       >
-                        {contact.status}
+                        {formatStatus(contact.status)}
                       </span>
                     </div>
 
@@ -249,7 +280,9 @@ const DashboardPage = () => {
 
                   {/* Project */}
                   <div className="hidden text-right sm:block">
-                    <p className="text-xs font-medium">{contact.projectType}</p>
+                    <p className="text-xs font-medium">
+                      {formatProjectType(contact.projectType)}
+                    </p>
 
                     <p className="mt-1 text-xs text-muted-foreground">
                       {formatDate(contact.createdAt)}
@@ -392,20 +425,78 @@ const DashboardPage = () => {
             </p>
           </div>
 
-          <button
-            type="button"
+          <Link
+            href="/leads"
             className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             View all
             <ArrowUpRight className="size-3.5" />
-          </button>
+          </Link>
         </div>
 
         {recentLeads.length > 0 ? (
           <div className="divide-y divide-border">
             {recentLeads.map((lead) => (
-              <div key={lead.id} className="p-5">
-                {/* Render lead data here once backend shape is finalized */}
+              <div
+                key={lead.id}
+                className="flex items-center gap-4 p-5 transition-colors hover:bg-muted/30"
+              >
+                {/* Avatar */}
+                <div className="flex size-10 shrink-0 items-center justify-center bg-muted font-medium">
+                  {lead.contact.name
+                    .split(" ")
+                    .map((name) => name[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </div>
+
+                {/* Lead / Contact Info */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-medium">
+                      {lead.contact.name}
+                    </p>
+
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                        statusStyles[lead.status] ??
+                        "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {formatStatus(lead.status)}
+                    </span>
+                  </div>
+
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Mail className="size-3" />
+                      {lead.contact.email}
+                    </span>
+
+                    <span>{lead.contact.company}</span>
+                  </div>
+                </div>
+
+                {/* Lead Details */}
+                <div className="hidden text-right sm:block">
+                  <p className="text-xs font-medium">
+                    {formatCurrency(lead.estimatedValue)}
+                  </p>
+
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {lead.assignedTo ? lead.assignedTo.name : "Unassigned"}
+                  </p>
+                </div>
+
+                {/* Created Date */}
+                <div className="hidden text-right md:block">
+                  <p className="text-xs text-muted-foreground">Created</p>
+
+                  <p className="mt-1 text-xs font-medium">
+                    {formatDateTime(lead.createdAt)}
+                  </p>
+                </div>
               </div>
             ))}
           </div>

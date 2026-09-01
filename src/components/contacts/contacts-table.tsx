@@ -7,10 +7,7 @@ import {
   tableFeatures,
   useTable,
 } from "@tanstack/react-table";
-
-import { Eye, Pencil, Trash2 } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 
 import {
   Table,
@@ -20,10 +17,34 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { type Contact } from "@/hooks/apis/useContacts";
 
-import { useDeleteContact, type Contact } from "@/hooks/apis/useContacts";
-import { useState } from "react";
-import ConfirmationDialog from "../common/confirmation-dialog";
+/* -------------------------------------------------------------------------- */
+/*                                  Helpers                                   */
+/* -------------------------------------------------------------------------- */
+
+const formatValue = (value: string | null | undefined) => {
+  if (!value) return "—";
+
+  return value
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+const formatDate = (value: string) => {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
+};
+
+const statusStyles: Record<string, string> = {
+  NEW: "bg-blue-500/10 text-blue-600",
+  CONVERTED: "bg-green-500/10 text-green-600",
+  SPAM: "bg-red-500/10 text-red-600",
+};
 
 /* -------------------------------------------------------------------------- */
 /*                                  Features                                  */
@@ -38,11 +59,15 @@ const features = tableFeatures({});
 const columnHelper = createColumnHelper<typeof features, Contact>();
 
 /* -------------------------------------------------------------------------- */
-/*                                  Columns                                   */
+/*                                   Columns                                  */
 /* -------------------------------------------------------------------------- */
 
-const getColumns = (onDelete: (contact: Contact) => void) =>
+const getColumns = () =>
   columnHelper.columns([
+    /* ---------------------------------------------------------------------- */
+    /* Name                                                                   */
+    /* ---------------------------------------------------------------------- */
+
     columnHelper.accessor("name", {
       header: "Name",
       cell: ({ getValue }) => (
@@ -50,50 +75,100 @@ const getColumns = (onDelete: (contact: Contact) => void) =>
       ),
     }),
 
+    /* ---------------------------------------------------------------------- */
+    /* Company                                                                */
+    /* ---------------------------------------------------------------------- */
+
     columnHelper.accessor("company", {
       header: "Company",
-      cell: ({ getValue }) => (
-        <span className="whitespace-nowrap">{getValue()}</span>
-      ),
-    }),
-
-    columnHelper.accessor("email", {
-      header: "Email",
-      cell: ({ getValue }) => (
-        <span className="whitespace-nowrap">{getValue()}</span>
-      ),
-    }),
-
-    columnHelper.accessor("projectType", {
-      header: "Project Type",
-      cell: ({ getValue }) => (
-        <span className="whitespace-nowrap">{getValue()}</span>
-      ),
-    }),
-
-    columnHelper.accessor("budget", {
-      header: "Budget",
       cell: ({ getValue }) => (
         <span className="whitespace-nowrap">{getValue() || "—"}</span>
       ),
     }),
 
-    columnHelper.accessor("createdAt", {
-      header: "Created",
+    /* ---------------------------------------------------------------------- */
+    /* Email                                                                  */
+    /* ---------------------------------------------------------------------- */
+
+    columnHelper.accessor("email", {
+      header: "Email",
+      cell: ({ getValue }) => (
+        <span className="whitespace-nowrap text-muted-foreground">
+          {getValue()}
+        </span>
+      ),
+    }),
+
+    /* ---------------------------------------------------------------------- */
+    /* Phone                                                                  */
+    /* ---------------------------------------------------------------------- */
+
+    columnHelper.accessor("phone", {
+      header: "Phone",
+      cell: ({ getValue }) => (
+        <span className="whitespace-nowrap">{getValue() || "—"}</span>
+      ),
+    }),
+
+    /* ---------------------------------------------------------------------- */
+    /* Industry                                                               */
+    /* ---------------------------------------------------------------------- */
+
+    columnHelper.accessor("industry", {
+      header: "Industry",
+      cell: ({ getValue }) => (
+        <span className="whitespace-nowrap">{getValue() || "—"}</span>
+      ),
+    }),
+
+    /* ---------------------------------------------------------------------- */
+    /* Project Type                                                           */
+    /* ---------------------------------------------------------------------- */
+
+    columnHelper.accessor("projectType", {
+      header: "Project Type",
+      cell: ({ getValue }) => (
+        <span className="whitespace-nowrap">{formatValue(getValue())}</span>
+      ),
+    }),
+
+    /* ---------------------------------------------------------------------- */
+    /* Status                                                                 */
+    /* ---------------------------------------------------------------------- */
+
+    columnHelper.accessor("status", {
+      header: "Status",
       cell: ({ getValue }) => {
-        const value = getValue();
+        const status = getValue();
 
         return (
-          <span className="whitespace-nowrap">
-            {new Date(value).toLocaleDateString("en-IN", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })}
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+              statusStyles[status] ?? "bg-muted text-muted-foreground"
+            }`}
+          >
+            {formatValue(status)}
           </span>
         );
       },
     }),
+
+    /* ---------------------------------------------------------------------- */
+    /* Created                                                                */
+    /* ---------------------------------------------------------------------- */
+
+    columnHelper.accessor("createdAt", {
+      header: "Created",
+      cell: ({ getValue }) => (
+        <span className="whitespace-nowrap text-muted-foreground">
+          {formatDate(getValue())}
+        </span>
+      ),
+    }),
+
+    /* ---------------------------------------------------------------------- */
+    /* Actions                                                                */
+    /* ---------------------------------------------------------------------- */
 
     columnHelper.display({
       id: "actions",
@@ -111,26 +186,6 @@ const getColumns = (onDelete: (contact: Contact) => void) =>
             >
               <Eye className="size-4" />
             </Link>
-
-            {/* Edit */}
-            <Link
-              href={`/contacts/${contact.id}/edit`}
-              title="Edit contact"
-              className="inline-flex size-8 items-center justify-center border border-transparent transition-colors hover:border-border hover:bg-muted"
-            >
-              <Pencil className="size-4" />
-            </Link>
-
-            {/* Delete */}
-            <Button
-              variant="ghost"
-              size="icon"
-              title="Delete contact"
-              className="text-danger hover:bg-danger/10 hover:text-danger"
-              onClick={() => onDelete(contact)}
-            >
-              <Trash2 className="size-4" />
-            </Button>
           </div>
         );
       },
@@ -138,7 +193,7 @@ const getColumns = (onDelete: (contact: Contact) => void) =>
   ]);
 
 /* -------------------------------------------------------------------------- */
-/*                               Table Props                                  */
+/*                                Table Props                                 */
 /* -------------------------------------------------------------------------- */
 
 interface ContactsTableProps {
@@ -150,25 +205,11 @@ interface ContactsTableProps {
 /* -------------------------------------------------------------------------- */
 
 export function ContactsTable({ data }: ContactsTableProps) {
-  const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
+  /* ------------------------------------------------------------------------ */
+  /*                                  Table                                   */
+  /* ------------------------------------------------------------------------ */
 
-  const { mutate: deleteContact, isPending: isDeleting } = useDeleteContact();
-
-  const handleDelete = (contact: Contact) => {
-    setContactToDelete(contact);
-  };
-
-  const handleConfirmDelete = () => {
-    if (!contactToDelete) return;
-
-    deleteContact(contactToDelete.id, {
-      onSuccess: () => {
-        setContactToDelete(null);
-      },
-    });
-  };
-
-  const columns = getColumns(handleDelete);
+  const columns = getColumns();
 
   const table = useTable({
     features,
@@ -178,11 +219,15 @@ export function ContactsTable({ data }: ContactsTableProps) {
 
   const rows = table.getRowModel().rows;
 
+  /* ------------------------------------------------------------------------ */
+  /*                                  Render                                  */
+  /* ------------------------------------------------------------------------ */
+
   return (
     <>
       <div className="w-full overflow-hidden border border-border bg-card">
         <div className="w-full overflow-x-auto">
-          <Table className="min-w-225">
+          <Table className="min-w-275">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
@@ -191,7 +236,7 @@ export function ContactsTable({ data }: ContactsTableProps) {
                       key={header.id}
                       className={
                         header.id === "actions"
-                          ? "w-30 text-right"
+                          ? "w-24 text-right"
                           : "whitespace-nowrap"
                       }
                     >
@@ -226,9 +271,13 @@ export function ContactsTable({ data }: ContactsTableProps) {
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className="h-24 text-center text-sm text-muted-foreground"
+                    className="h-48 text-center"
                   >
-                    No contacts found.
+                    <p className="text-sm font-medium">No contacts found</p>
+
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Contacts submitted through your website will appear here.
+                    </p>
                   </TableCell>
                 </TableRow>
               )}
@@ -236,25 +285,6 @@ export function ContactsTable({ data }: ContactsTableProps) {
           </Table>
         </div>
       </div>
-
-      {/* Delete Confirmation */}
-      <ConfirmationDialog
-        open={!!contactToDelete}
-        onOpenChange={(open) => {
-          if (!open) {
-            setContactToDelete(null);
-          }
-        }}
-        title="Delete contact?"
-        message={
-          contactToDelete
-            ? `Are you sure you want to delete ${contactToDelete.name}? This action cannot be undone.`
-            : ""
-        }
-        confirmText="Delete"
-        onConfirm={handleConfirmDelete}
-        isLoading={isDeleting}
-      />
     </>
   );
 }

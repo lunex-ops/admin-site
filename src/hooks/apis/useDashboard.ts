@@ -31,7 +31,18 @@ export interface DashboardOverview {
   pipeline: DashboardPipelineOverview;
 }
 
-export type ContactStatus = "NEW" | string;
+/* -------------------------------------------------------------------------- */
+/*                              Recent Contacts                               */
+/* -------------------------------------------------------------------------- */
+
+export type ContactStatus =
+  | "NEW"
+  | "CONTACTED"
+  | "QUALIFIED"
+  | "WON"
+  | "LOST"
+  | "SPAM"
+  | string;
 
 export interface RecentContact {
   id: string;
@@ -43,14 +54,45 @@ export interface RecentContact {
   createdAt: string;
 }
 
-export interface RecentLead {
+/* -------------------------------------------------------------------------- */
+/*                                Recent Leads                                */
+/* -------------------------------------------------------------------------- */
+
+export type LeadStatus =
+  | "NEW"
+  | "CONTACTED"
+  | "QUALIFIED"
+  | "WON"
+  | "LOST"
+  | string;
+
+export interface RecentLeadContact {
   id: string;
   name: string;
   email: string;
   company: string;
-  status: string;
-  createdAt: string;
 }
+
+export interface AssignedUser {
+  id: string;
+  name: string;
+}
+
+export interface RecentLead {
+  id: string;
+  status: LeadStatus;
+  estimatedValue: number | null;
+  nextFollowUpAt: string | null;
+  createdAt: string;
+
+  contact: RecentLeadContact;
+
+  assignedTo: AssignedUser | null;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                             Dashboard Response                             */
+/* -------------------------------------------------------------------------- */
 
 export interface DashboardResponse {
   status: "success";
