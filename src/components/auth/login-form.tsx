@@ -23,7 +23,6 @@ import {
 
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -33,10 +32,6 @@ import { Input } from "@/components/ui/input";
 
 import { useSignIn } from "@/hooks/apis/useAuth";
 import { useAuth } from "@/context/AuthContext";
-
-/* -------------------------------------------------------------------------- */
-/*                                  Schema                                    */
-/* -------------------------------------------------------------------------- */
 
 const loginSchema = z.object({
   email: z
@@ -48,10 +43,6 @@ const loginSchema = z.object({
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
-
-/* -------------------------------------------------------------------------- */
-/*                               Login Form                                   */
-/* -------------------------------------------------------------------------- */
 
 export function LoginForm({
   className,
@@ -75,10 +66,6 @@ export function LoginForm({
       password: "",
     },
   });
-
-  /* ------------------------------------------------------------------------ */
-  /*                              Submit                                      */
-  /* ------------------------------------------------------------------------ */
 
   const onSubmit = async (values: LoginFormValues) => {
     try {
@@ -121,10 +108,6 @@ export function LoginForm({
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)}>
             <FieldGroup>
-              {/* ---------------------------------------------------------------- */}
-              {/* Email                                                            */}
-              {/* ---------------------------------------------------------------- */}
-
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
 
@@ -141,10 +124,6 @@ export function LoginForm({
                   <FieldError>{errors.email.message}</FieldError>
                 )}
               </Field>
-
-              {/* ---------------------------------------------------------------- */}
-              {/* Password                                                         */}
-              {/* ---------------------------------------------------------------- */}
 
               <Field>
                 <div className="flex items-center justify-between">
@@ -172,10 +151,6 @@ export function LoginForm({
                 )}
               </Field>
 
-              {/* ---------------------------------------------------------------- */}
-              {/* Submit                                                           */}
-              {/* ---------------------------------------------------------------- */}
-
               <Field>
                 <Button
                   type="submit"
@@ -185,20 +160,6 @@ export function LoginForm({
                   {signIn.isPending ? "Logging in..." : "Log In"}
                 </Button>
               </Field>
-
-              {/* ---------------------------------------------------------------- */}
-              {/* Signup                                                           */}
-              {/* ---------------------------------------------------------------- */}
-
-              <FieldDescription className="text-center">
-                Don&apos;t have an account?{" "}
-                <Link
-                  href="/signup"
-                  className="font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  Sign up
-                </Link>
-              </FieldDescription>
             </FieldGroup>
           </form>
         </CardContent>
