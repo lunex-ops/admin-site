@@ -10,10 +10,6 @@ const SpamsPage = () => {
 
   return (
     <div className="space-y-8">
-      {/* ------------------------------------------------------------------ */}
-      {/* Header                                                             */}
-      {/* ------------------------------------------------------------------ */}
-
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
           Workspace
@@ -25,10 +21,6 @@ const SpamsPage = () => {
           Review rejected contacts and manage contacts marked as spam.
         </p>
       </div>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* Loading State                                                      */}
-      {/* ------------------------------------------------------------------ */}
 
       {isLoading && (
         <div className="space-y-4">
@@ -44,10 +36,6 @@ const SpamsPage = () => {
         </div>
       )}
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Error State                                                        */}
-      {/* ------------------------------------------------------------------ */}
-
       {isError && (
         <div className="flex min-h-48 flex-col items-center justify-center border border-border bg-card p-6 text-center">
           <p className="text-sm font-medium">Unable to load spam contacts</p>
@@ -57,10 +45,6 @@ const SpamsPage = () => {
           </p>
         </div>
       )}
-
-      {/* ------------------------------------------------------------------ */}
-      {/* Spams                                                              */}
-      {/* ------------------------------------------------------------------ */}
 
       {!isLoading && !isError && <SpamsTable data={spams} />}
     </div>

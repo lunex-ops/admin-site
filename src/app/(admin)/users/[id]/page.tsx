@@ -22,52 +22,12 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import ConfirmationDialog from "@/components/common/confirmation-dialog";
 import Image from "next/image";
-
-/* -------------------------------------------------------------------------- */
-/*                                   Helpers                                  */
-/* -------------------------------------------------------------------------- */
-
-const formatValue = (value: string | null | undefined) => {
-  if (!value) return "—";
-
-  return value
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
-
-const formatDate = (value: string | null | undefined) => {
-  if (!value) return "—";
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
-};
-
-const formatDateTime = (value: string | null | undefined) => {
-  if (!value) return "—";
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-};
-
-const roleStyles: Record<string, string> = {
-  SUPER_ADMIN: "bg-purple-500/10 text-purple-600",
-  ADMIN: "bg-purple-500/10 text-purple-600",
-  MODERATOR: "bg-blue-500/10 text-blue-600",
-  USER: "bg-muted text-muted-foreground",
-};
-
-/* -------------------------------------------------------------------------- */
-/*                              User Details Page                             */
-/* -------------------------------------------------------------------------- */
+import {
+  formatDate,
+  formatDateTime,
+  formatValue,
+  roleStyles,
+} from "@/lib/helpers";
 
 const UserDetailsPage = () => {
   const params = useParams();
@@ -86,7 +46,6 @@ const UserDetailsPage = () => {
   if (isLoading) {
     return (
       <div className="space-y-8">
-        {/* Header Skeleton */}
         <div>
           <div className="h-4 w-28 animate-pulse bg-muted" />
 
@@ -95,7 +54,6 @@ const UserDetailsPage = () => {
           <div className="mt-3 h-4 w-72 animate-pulse bg-muted" />
         </div>
 
-        {/* Content Skeleton */}
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="h-72 animate-pulse border border-border bg-muted/30 lg:col-span-2" />
 

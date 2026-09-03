@@ -30,56 +30,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import ConfirmationDialog from "@/components/common/confirmation-dialog";
-
-const formatValue = (value: string | null | undefined) => {
-  if (!value) return "—";
-
-  return value
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
-
-const formatDate = (value: string | null | undefined) => {
-  if (!value) return "—";
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
-};
-
-const formatDateTime = (value: string | null | undefined) => {
-  if (!value) return "—";
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-};
-
-const formatCurrency = (value: number | null | undefined) => {
-  if (value === null || value === undefined) return "—";
-
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(value);
-};
-
-const statusStyles: Record<string, string> = {
-  NEW: "bg-blue-500/10 text-blue-600",
-  CONTACTED: "bg-yellow-500/10 text-yellow-600",
-  QUALIFIED: "bg-purple-500/10 text-purple-600",
-  PROPOSAL: "bg-orange-500/10 text-orange-600",
-  WON: "bg-green-500/10 text-green-600",
-  LOST: "bg-red-500/10 text-red-600",
-};
+import {
+  formatCurrency,
+  formatDate,
+  formatDateTime,
+  formatValue,
+  leadStatusStyles,
+} from "@/lib/helpers";
 
 const LeadDetailsPage = () => {
   const params = useParams();
@@ -203,7 +160,7 @@ const LeadDetailsPage = () => {
 
                   <span
                     className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${
-                      statusStyles[lead.status] ??
+                      leadStatusStyles[lead.status] ??
                       "bg-muted text-muted-foreground"
                     }`}
                   >
@@ -342,7 +299,7 @@ const LeadDetailsPage = () => {
                 <div className="mt-2">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      statusStyles[lead.status] ??
+                      leadStatusStyles[lead.status] ??
                       "bg-muted text-muted-foreground"
                     }`}
                   >

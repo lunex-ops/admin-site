@@ -17,6 +17,18 @@ export const formatDate = (value: string | null | undefined) => {
   }).format(new Date(value));
 };
 
+export const formatDateTime = (value: string | null | undefined) => {
+  if (!value) return "-";
+
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+};
+
 export const formatCurrency = (value: number | null | undefined) => {
   if (value === null || value === undefined) return "—";
 

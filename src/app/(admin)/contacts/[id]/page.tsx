@@ -30,39 +30,12 @@ import { Separator } from "@/components/ui/separator";
 
 import RejectionDialog from "@/components/common/rejection-dialog";
 import ConfirmationDialog from "@/components/common/confirmation-dialog";
-
-const formatValue = (value: string | null | undefined) => {
-  if (!value) return "—";
-
-  return value
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
-
-const formatDate = (value: string) => {
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
-};
-
-const formatDateTime = (value: string) => {
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-};
-
-const statusStyles: Record<string, string> = {
-  NEW: "bg-blue-500/10 text-blue-600",
-  CONVERTED: "bg-green-500/10 text-green-600",
-  SPAM: "bg-red-500/10 text-red-600",
-};
+import {
+  contactStatusStyles,
+  formatDate,
+  formatDateTime,
+  formatValue,
+} from "@/lib/helpers";
 
 const ContactDetailsPage = () => {
   const params = useParams();
@@ -173,7 +146,7 @@ const ContactDetailsPage = () => {
 
                   <span
                     className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${
-                      statusStyles[contact.status] ??
+                      contactStatusStyles[contact.status] ??
                       "bg-muted text-muted-foreground"
                     }`}
                   >
@@ -299,7 +272,7 @@ const ContactDetailsPage = () => {
                 <div className="mt-2">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      statusStyles[contact.status] ??
+                      contactStatusStyles[contact.status] ??
                       "bg-muted text-muted-foreground"
                     }`}
                   >

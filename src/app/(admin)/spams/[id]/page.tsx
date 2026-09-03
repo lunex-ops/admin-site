@@ -22,47 +22,12 @@ import { Separator } from "@/components/ui/separator";
 import ConfirmationDialog from "@/components/common/confirmation-dialog";
 
 import { useSpam, useRestoreSpam, useDeleteSpam } from "@/hooks/apis/useSpams";
-
-/* -------------------------------------------------------------------------- */
-/*                                  Helpers                                   */
-/* -------------------------------------------------------------------------- */
-
-const formatValue = (value: string | null | undefined) => {
-  if (!value) return "—";
-
-  return value
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
-
-const formatDate = (value: string) => {
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
-};
-
-const formatDateTime = (value: string) => {
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-};
-
-const statusStyles: Record<string, string> = {
-  NEW: "bg-blue-500/10 text-blue-600",
-  CONVERTED: "bg-green-500/10 text-green-600",
-  SPAM: "bg-red-500/10 text-red-600",
-};
-
-/* -------------------------------------------------------------------------- */
-/*                            Spam Details Page                               */
-/* -------------------------------------------------------------------------- */
+import {
+  contactStatusStyles,
+  formatDate,
+  formatDateTime,
+  formatValue,
+} from "@/lib/helpers";
 
 const SpamDetailsPage = () => {
   const params = useParams();
@@ -80,10 +45,6 @@ const SpamDetailsPage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const contact = data?.data?.contact;
-
-  /* ------------------------------------------------------------------------ */
-  /*                                  Loading                                 */
-  /* ------------------------------------------------------------------------ */
 
   if (isLoading) {
     return (
@@ -135,10 +96,6 @@ const SpamDetailsPage = () => {
     .slice(0, 2)
     .toUpperCase();
 
-  /* ------------------------------------------------------------------------ */
-  /*                              Action Handlers                             */
-  /* ------------------------------------------------------------------------ */
-
   const handleRestore = () => {
     restoreSpam(contact.id, {
       onSuccess: () => {
@@ -158,10 +115,6 @@ const SpamDetailsPage = () => {
       },
     });
   };
-
-  /* ------------------------------------------------------------------------ */
-  /*                                  Render                                  */
-  /* ------------------------------------------------------------------------ */
 
   return (
     <>
@@ -190,7 +143,7 @@ const SpamDetailsPage = () => {
 
                   <span
                     className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${
-                      statusStyles[contact.status] ??
+                      contactStatusStyles[contact.status] ??
                       "bg-muted text-muted-foreground"
                     }`}
                   >
@@ -293,7 +246,6 @@ const SpamDetailsPage = () => {
             </div>
           </section>
 
-          {/* Spam Status */}
           <section className="border border-border bg-card">
             <div className="border-b border-border p-5">
               <h2 className="font-medium">Spam Status</h2>
@@ -312,7 +264,7 @@ const SpamDetailsPage = () => {
                 <div className="mt-2">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      statusStyles[contact.status] ??
+                      contactStatusStyles[contact.status] ??
                       "bg-muted text-muted-foreground"
                     }`}
                   >
@@ -351,7 +303,6 @@ const SpamDetailsPage = () => {
             </div>
           </section>
 
-          {/* Project Overview */}
           <section className="border border-border bg-card lg:col-span-3">
             <div className="border-b border-border p-5">
               <h2 className="font-medium">Project Overview</h2>
@@ -373,7 +324,6 @@ const SpamDetailsPage = () => {
             </div>
           </section>
 
-          {/* Project Details */}
           <section className="border border-border bg-card lg:col-span-2">
             <div className="border-b border-border p-5">
               <h2 className="font-medium">Project Details</h2>
@@ -390,7 +340,6 @@ const SpamDetailsPage = () => {
             </div>
           </section>
 
-          {/* Additional Information */}
           <section className="border border-border bg-card">
             <div className="border-b border-border p-5">
               <h2 className="font-medium">Additional Information</h2>
@@ -419,7 +368,6 @@ const SpamDetailsPage = () => {
             </div>
           </section>
 
-          {/* Submission Information */}
           <section className="border border-border bg-card lg:col-span-3">
             <div className="border-b border-border p-5">
               <h2 className="font-medium">Submission Information</h2>
@@ -488,10 +436,6 @@ const SpamDetailsPage = () => {
     </>
   );
 };
-
-/* -------------------------------------------------------------------------- */
-/*                               Detail Item                                  */
-/* -------------------------------------------------------------------------- */
 
 interface DetailItemProps {
   label: string;

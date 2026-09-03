@@ -26,10 +26,7 @@ import { toast } from "@/components/ui/toast";
 import { useUpdateUser, useUser } from "@/hooks/apis/useUsers";
 import { RoleType, UpdateUserInput, User } from "@/types/user.types";
 import Image from "next/image";
-
-/* -------------------------------------------------------------------------- */
-/*                                  Constants                                 */
-/* -------------------------------------------------------------------------- */
+import { formatValue } from "@/lib/helpers";
 
 const roles = [
   {
@@ -49,10 +46,6 @@ const roles = [
     label: "User",
   },
 ] as const;
-
-/* -------------------------------------------------------------------------- */
-/*                                 Validation                                 */
-/* -------------------------------------------------------------------------- */
 
 const editUserSchema = z.object({
   username: z
@@ -76,10 +69,6 @@ const editUserSchema = z.object({
 
 type EditUserFormValues = z.infer<typeof editUserSchema>;
 
-/* -------------------------------------------------------------------------- */
-/*                                  Helpers                                   */
-/* -------------------------------------------------------------------------- */
-
 const getDefaultValues = (user: User): EditUserFormValues => ({
   username: user.username,
   email: user.email,
@@ -87,19 +76,6 @@ const getDefaultValues = (user: User): EditUserFormValues => ({
   isActive: user.isActive,
   photo: user.photo,
 });
-
-const formatValue = (value: string | null | undefined) => {
-  if (!value) return "—";
-
-  return value
-    .replace(/\_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
-
-/* -------------------------------------------------------------------------- */
-/*                                Field Error                                 */
-/* -------------------------------------------------------------------------- */
 
 interface FieldErrorProps {
   message?: string;
@@ -110,10 +86,6 @@ const FieldError = ({ message }: FieldErrorProps) => {
 
   return <p className="text-xs text-danger">{message}</p>;
 };
-
-/* -------------------------------------------------------------------------- */
-/*                              Edit User Form                                */
-/* -------------------------------------------------------------------------- */
 
 interface EditUserFormProps {
   user: User;
@@ -145,10 +117,6 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
   const isActive = watch("isActive");
   const photo = watch("photo");
 
-  /* ------------------------------------------------------------------------ */
-  /*                              Photo Preview                               */
-  /* ------------------------------------------------------------------------ */
-
   useEffect(() => {
     return () => {
       if (photoPreview?.startsWith("blob:")) {
@@ -156,10 +124,6 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
       }
     };
   }, [photoPreview]);
-
-  /* ------------------------------------------------------------------------ */
-  /*                              Photo Handler                               */
-  /* ------------------------------------------------------------------------ */
 
   const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -202,10 +166,6 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
     });
   };
 
-  /* ------------------------------------------------------------------------ */
-  /*                              Remove Photo                                */
-  /* ------------------------------------------------------------------------ */
-
   const handleRemovePhoto = () => {
     if (photoPreview?.startsWith("blob:")) {
       URL.revokeObjectURL(photoPreview);
@@ -222,10 +182,6 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
       fileInputRef.current.value = "";
     }
   };
-
-  /* ------------------------------------------------------------------------ */
-  /*                               Form Submit                                */
-  /* ------------------------------------------------------------------------ */
 
   const handleFormSubmit = (values: EditUserFormValues) => {
     const payload: UpdateUserInput = {
@@ -262,17 +218,9 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
     );
   };
 
-  /* ------------------------------------------------------------------------ */
-  /*                                  Render                                  */
-  /* ------------------------------------------------------------------------ */
-
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
       <div className="space-y-6">
-        {/* ---------------------------------------------------------------- */}
-        {/* User Information                                                  */}
-        {/* ---------------------------------------------------------------- */}
-
         <Card>
           <CardHeader>
             <CardTitle>User Information</CardTitle>
@@ -284,8 +232,6 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
 
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
-              {/* Username */}
-
               <div className="space-y-2">
                 <label htmlFor="username" className="text-sm font-medium">
                   Username
@@ -300,8 +246,6 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
 
                 <FieldError message={errors.username?.message} />
               </div>
-
-              {/* Email */}
 
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium">
@@ -318,8 +262,6 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
 
                 <FieldError message={errors.email?.message} />
               </div>
-
-              {/* Role */}
 
               <div className="space-y-2.5">
                 <label htmlFor="role" className="text-sm font-medium">
@@ -358,8 +300,6 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
                 <FieldError message={errors.role?.message} />
               </div>
 
-              {/* Account Status */}
-
               <div className="space-y-2">
                 <label className="text-sm font-medium">Account Status</label>
 
@@ -393,10 +333,6 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
           </CardContent>
         </Card>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Profile Photo                                                     */}
-        {/* ---------------------------------------------------------------- */}
-
         <Card>
           <CardHeader>
             <CardTitle>Profile Photo</CardTitle>
@@ -421,8 +357,6 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
                   <UserRound className="size-10 text-muted-foreground/50" />
                 )}
               </div>
-
-              {/* Upload Controls */}
 
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
@@ -464,10 +398,6 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
             </div>
           </CardContent>
         </Card>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Account Details                                                   */}
-        {/* ---------------------------------------------------------------- */}
 
         <Card>
           <CardHeader>
@@ -511,10 +441,6 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
           </CardContent>
         </Card>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Actions                                                           */}
-        {/* ---------------------------------------------------------------- */}
-
         <div className="flex flex-col-reverse gap-2 border-t border-border pt-6 sm:flex-row sm:justify-end">
           <Button
             type="button"
@@ -536,10 +462,6 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Edit User Page                                */
-/* -------------------------------------------------------------------------- */
-
 const EditUserPage = () => {
   const params = useParams();
 
@@ -548,10 +470,6 @@ const EditUserPage = () => {
   const { data, isLoading, isError } = useUser(id);
 
   const user = data?.data?.user;
-
-  /* ------------------------------------------------------------------------ */
-  /* Loading                                                                  */
-  /* ------------------------------------------------------------------------ */
 
   if (isLoading) {
     return (
@@ -572,10 +490,6 @@ const EditUserPage = () => {
       </div>
     );
   }
-
-  /* ------------------------------------------------------------------------ */
-  /* Error                                                                    */
-  /* ------------------------------------------------------------------------ */
 
   if (isError || !user) {
     return (
@@ -599,14 +513,8 @@ const EditUserPage = () => {
     );
   }
 
-  /* ------------------------------------------------------------------------ */
-  /* Render                                                                   */
-  /* ------------------------------------------------------------------------ */
-
   return (
     <div className="space-y-8">
-      {/* Header */}
-
       <div>
         <Link
           href={`/users/${user.id}`}
@@ -630,8 +538,6 @@ const EditUserPage = () => {
           </p>
         </div>
       </div>
-
-      {/* Form */}
 
       <EditUserForm key={`${user.id}-${user.updatedAt}`} user={user} />
     </div>

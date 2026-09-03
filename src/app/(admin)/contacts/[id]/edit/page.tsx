@@ -24,6 +24,7 @@ import { toast } from "@/components/ui/toast";
 import { useContact, useUpdateContact } from "@/hooks/apis/useContacts";
 import { Contact, UpdateContactInput } from "@/types/contact.types";
 import { ProjectType } from "@/types/common.types";
+import { FieldError } from "@/components/form-elements/field-error";
 
 const projectTypes = [
   {
@@ -102,16 +103,6 @@ const getDefaultValues = (contact: Contact): EditContactFormValues => ({
   projectDetails: contact.projectDetails ?? "",
   referral: contact.referral ?? "",
 });
-
-interface FieldErrorProps {
-  message?: string;
-}
-
-const FieldError = ({ message }: FieldErrorProps) => {
-  if (!message) return null;
-
-  return <p className="text-xs text-danger">{message}</p>;
-};
 
 interface EditContactFormProps {
   contact: Contact;
