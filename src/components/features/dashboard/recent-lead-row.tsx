@@ -4,21 +4,13 @@ import {
   formatCurrency,
   formatDateTime,
   formatValue,
+  getInitials,
   leadStatusStyles,
 } from "@/lib/helpers";
 import { RecentLead } from "@/types/dashboard.types";
 
 type RecentLeadRowProps = {
   lead: RecentLead;
-};
-
-const getInitials = (name: string) => {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 };
 
 export const RecentLeadRow = ({ lead }: RecentLeadRowProps) => {

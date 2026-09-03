@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 
 import {
   ArrowLeft,
   Building2,
-  ExternalLink,
   Globe,
   Mail,
   Phone,
@@ -27,7 +26,10 @@ import {
   formatDate,
   formatDateTime,
   formatValue,
+  getInitials,
 } from "@/lib/helpers";
+import ButtonBack from "@/components/common/buttons/button-back";
+import { DetailItem } from "@/components/features/common/detail-item";
 
 const SpamDetailsPage = () => {
   const params = useParams();
@@ -63,10 +65,6 @@ const SpamDetailsPage = () => {
     );
   }
 
-  /* ------------------------------------------------------------------------ */
-  /*                                   Error                                  */
-  /* ------------------------------------------------------------------------ */
-
   if (isError || !contact) {
     return (
       <div className="flex min-h-64 flex-col items-center justify-center text-center">
@@ -88,13 +86,6 @@ const SpamDetailsPage = () => {
       </div>
     );
   }
-
-  const initials = contact.name
-    .split(" ")
-    .map((name) => name[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
   const handleRestore = () => {
     restoreSpam(contact.id, {
@@ -119,20 +110,13 @@ const SpamDetailsPage = () => {
   return (
     <>
       <div className="space-y-8">
-        {/* Header */}
         <div>
-          <Link
-            href="/spams"
-            className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" />
-            Back to Spams
-          </Link>
+          <ButtonBack link="/spams" />
 
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <div className="flex items-start gap-4">
               <div className="flex size-14 shrink-0 items-center justify-center bg-red-500/10 text-lg font-semibold text-red-600">
-                {initials}
+                {getInitials(contact.name)}
               </div>
 
               <div>
@@ -169,7 +153,6 @@ const SpamDetailsPage = () => {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 onClick={() => setIsRestoreDialogOpen(true)}
@@ -191,9 +174,7 @@ const SpamDetailsPage = () => {
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Contact Information */}
           <section className="border border-border bg-card lg:col-span-2">
             <div className="border-b border-border p-5">
               <h2 className="font-medium">Contact Information</h2>
@@ -410,7 +391,6 @@ const SpamDetailsPage = () => {
         </div>
       </div>
 
-      {/* Restore Confirmation */}
       <ConfirmationDialog
         open={isRestoreDialogOpen}
         onOpenChange={setIsRestoreDialogOpen}
@@ -422,7 +402,6 @@ const SpamDetailsPage = () => {
         isLoading={isRestoring}
       />
 
-      {/* Delete Confirmation */}
       <ConfirmationDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
@@ -434,48 +413,6 @@ const SpamDetailsPage = () => {
         isLoading={isDeleting}
       />
     </>
-  );
-};
-
-interface DetailItemProps {
-  label: string;
-  value: string | null | undefined;
-  href?: string;
-  icon?: ReactNode;
-  external?: boolean;
-}
-
-const DetailItem = ({
-  label,
-  value,
-  href,
-  icon,
-  external = false,
-}: DetailItemProps) => {
-  const displayValue = value || "—";
-
-  return (
-    <div>
-      <p className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-        {icon}
-        {label}
-      </p>
-
-      {href && value ? (
-        <a
-          href={href}
-          target={external ? "_blank" : undefined}
-          rel={external ? "noopener noreferrer" : undefined}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:underline"
-        >
-          {displayValue}
-
-          {external && <ExternalLink className="size-3.5" />}
-        </a>
-      ) : (
-        <p className="text-sm font-medium">{displayValue}</p>
-      )}
-    </div>
   );
 };
 

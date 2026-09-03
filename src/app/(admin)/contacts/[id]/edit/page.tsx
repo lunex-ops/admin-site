@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form";
 import { ArrowLeft, Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -25,6 +24,9 @@ import { useContact, useUpdateContact } from "@/hooks/apis/useContacts";
 import { Contact, UpdateContactInput } from "@/types/contact.types";
 import { ProjectType } from "@/types/common.types";
 import { FieldError } from "@/components/form-elements/field-error";
+import TextField from "@/components/form-elements/text-field";
+import ButtonBack from "@/components/common/buttons/button-back";
+import { PageHeader } from "@/components/features/common/page-header";
 
 const projectTypes = [
   {
@@ -180,98 +182,55 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
 
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium">
-                  Name
-                </label>
+              <TextField
+                name="name"
+                label="Name"
+                placeholder="Contact name"
+                register={register("name")}
+                error={errors.name?.message}
+              />
 
-                <Input
-                  id="name"
-                  {...register("name")}
-                  placeholder="Contact name"
-                  aria-invalid={!!errors.name}
-                />
+              <TextField
+                name="company"
+                label="Company"
+                placeholder="Company name"
+                register={register("company")}
+                error={errors.company?.message}
+              />
 
-                <FieldError message={errors.name?.message} />
-              </div>
+              <TextField
+                name="email"
+                label="Email"
+                placeholder="contact@example.com"
+                register={register("email")}
+                error={errors.email?.message}
+              />
 
-              <div className="space-y-2">
-                <label htmlFor="company" className="text-sm font-medium">
-                  Company
-                </label>
+              <TextField
+                name="phone"
+                label="Phone"
+                placeholder="+1 555 123 4567"
+                register={register("phone")}
+                error={errors.phone?.message}
+              />
 
-                <Input
-                  id="company"
-                  {...register("company")}
-                  placeholder="Company name"
-                  aria-invalid={!!errors.company}
-                />
+              <TextField
+                name="website"
+                label="Website"
+                type="url"
+                placeholder="https://example.com"
+                register={register("website")}
+                error={errors.website?.message}
+              />
 
-                <FieldError message={errors.company?.message} />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium">
-                  Email
-                </label>
-
-                <Input
-                  id="email"
-                  type="email"
-                  {...register("email")}
-                  placeholder="contact@example.com"
-                  aria-invalid={!!errors.email}
-                />
-
-                <FieldError message={errors.email?.message} />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="phone" className="text-sm font-medium">
-                  Phone
-                </label>
-
-                <Input
-                  id="phone"
-                  type="tel"
-                  {...register("phone")}
-                  placeholder="+1 555 123 4567"
-                  aria-invalid={!!errors.phone}
-                />
-
-                <FieldError message={errors.phone?.message} />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="website" className="text-sm font-medium">
-                  Website
-                </label>
-
-                <Input
-                  id="website"
-                  type="url"
-                  {...register("website")}
-                  placeholder="https://example.com"
-                  aria-invalid={!!errors.website}
-                />
-
-                <FieldError message={errors.website?.message} />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="industry" className="text-sm font-medium">
-                  Industry
-                </label>
-
-                <Input
-                  id="industry"
-                  {...register("industry")}
-                  placeholder="e.g. Health & Wellness"
-                  aria-invalid={!!errors.industry}
-                />
-
-                <FieldError message={errors.industry?.message} />
-              </div>
+              <TextField
+                name="industry"
+                label="Industry"
+                type="url"
+                placeholder="e.g. Health & Wellness"
+                register={register("industry")}
+                error={errors.industry?.message}
+              />
             </div>
           </CardContent>
         </Card>
@@ -323,35 +282,21 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
                 <FieldError message={errors.projectType?.message} />
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="budget" className="text-sm font-medium">
-                  Budget
-                </label>
+              <TextField
+                name="budget"
+                label="Budget"
+                placeholder="₹10,000 - ₹20,000"
+                register={register("budget")}
+                error={errors.budget?.message}
+              />
 
-                <Input
-                  id="budget"
-                  {...register("budget")}
-                  placeholder="$10,000 - $20,000"
-                  aria-invalid={!!errors.budget}
-                />
-
-                <FieldError message={errors.budget?.message} />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="timeline" className="text-sm font-medium">
-                  Timeline
-                </label>
-
-                <Input
-                  id="timeline"
-                  {...register("timeline")}
-                  placeholder="2-3 months"
-                  aria-invalid={!!errors.timeline}
-                />
-
-                <FieldError message={errors.timeline?.message} />
-              </div>
+              <TextField
+                name="timeline"
+                label="Timeline"
+                placeholder="2-3 months"
+                register={register("timeline")}
+                error={errors.timeline?.message}
+              />
             </div>
 
             <div className="space-y-2">
@@ -382,20 +327,13 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
           </CardHeader>
 
           <CardContent>
-            <div className="max-w-md space-y-2">
-              <label htmlFor="referral" className="text-sm font-medium">
-                Referral Source
-              </label>
-
-              <Input
-                id="referral"
-                {...register("referral")}
-                placeholder="e.g. Google, Instagram, Referral"
-                aria-invalid={!!errors.referral}
-              />
-
-              <FieldError message={errors.referral?.message} />
-            </div>
+            <TextField
+              name="referral"
+              label="Referral Source"
+              placeholder="e.g. Google, Instagram, Referral"
+              register={register("referral")}
+              error={errors.referral?.message}
+            />
           </CardContent>
         </Card>
 
@@ -472,27 +410,13 @@ const EditContactPage = () => {
   return (
     <div className="space-y-8">
       <div>
-        <Link
-          href={`/contacts/${contact.id}`}
-          className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" />
-          Back to Contact
-        </Link>
+        <ButtonBack link={`/contacts/${contact.id}`} />
 
-        <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            Contacts
-          </p>
-
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Edit Contact
-          </h1>
-
-          <p className="mt-2 text-sm text-muted-foreground">
-            Update the information for {contact.name}.
-          </p>
-        </div>
+        <PageHeader
+          title="Contacts"
+          pageName="Edit Contact"
+          subTitle={`Update the information for ${contact.name}.`}
+        />
       </div>
 
       <EditContactForm

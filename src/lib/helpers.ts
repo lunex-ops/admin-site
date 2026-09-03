@@ -39,6 +39,17 @@ export const formatCurrency = (value: number | null | undefined) => {
   }).format(value);
 };
 
+export const getInitials = (name: string | null | undefined) => {
+  if (!name) return "A";
+
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+};
+
 export const roleStyles: Record<string, string> = {
   SUPER_ADMIN: "bg-purple-500/10 text-purple-600",
   ADMIN: "bg-blue-500/10 text-blue-600",

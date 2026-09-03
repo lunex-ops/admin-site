@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 
 import {
   ArrowLeft,
   Building2,
   Check,
   CheckCircle2,
-  ExternalLink,
   Globe,
   Mail,
   Pencil,
@@ -35,7 +34,10 @@ import {
   formatDate,
   formatDateTime,
   formatValue,
+  getInitials,
 } from "@/lib/helpers";
+import ButtonBack from "@/components/common/buttons/button-back";
+import { DetailItem } from "@/components/features/common/detail-item";
 
 const ContactDetailsPage = () => {
   const params = useParams();
@@ -91,13 +93,6 @@ const ContactDetailsPage = () => {
     );
   }
 
-  const initials = contact.name
-    .split(" ")
-    .map((name) => name[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
   const handleAccept = () => {
     acceptContact(contact.id, {
       onSuccess: () => {
@@ -124,18 +119,12 @@ const ContactDetailsPage = () => {
     <>
       <div className="space-y-8">
         <div>
-          <Link
-            href="/contacts"
-            className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" />
-            Back to Contacts
-          </Link>
+          <ButtonBack link="/contacts" />
 
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <div className="flex items-start gap-4">
               <div className="flex size-14 shrink-0 items-center justify-center bg-muted text-lg font-semibold">
-                {initials}
+                {getInitials(contact.name)}
               </div>
 
               <div>
@@ -469,48 +458,6 @@ const ContactDetailsPage = () => {
         isLoading={isRejecting}
       />
     </>
-  );
-};
-
-interface DetailItemProps {
-  label: string;
-  value: string | null | undefined;
-  href?: string;
-  icon?: ReactNode;
-  external?: boolean;
-}
-
-const DetailItem = ({
-  label,
-  value,
-  href,
-  icon,
-  external = false,
-}: DetailItemProps) => {
-  const displayValue = value || "—";
-
-  return (
-    <div>
-      <p className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-        {icon}
-        {label}
-      </p>
-
-      {href && value ? (
-        <a
-          href={href}
-          target={external ? "_blank" : undefined}
-          rel={external ? "noopener noreferrer" : undefined}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:underline"
-        >
-          {displayValue}
-
-          {external && <ExternalLink className="size-3.5" />}
-        </a>
-      ) : (
-        <p className="text-sm font-medium">{displayValue}</p>
-      )}
-    </div>
   );
 };
 

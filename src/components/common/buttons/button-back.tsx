@@ -1,0 +1,20 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+
+interface ButtonBackProps {
+  link?: string;
+}
+
+const ButtonBack = ({ link = "/dashboard" }: ButtonBackProps) => {
+  return (
+    <Link
+      href={link}
+      className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+    >
+      <ArrowLeft className="size-4" />
+      Go Back
+    </Link>
+  );
+};
+
+export default ButtonBack;

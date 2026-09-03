@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { z } from "zod";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { RotateCcw, Save, Settings2 } from "lucide-react";
@@ -14,57 +14,10 @@ import { toast } from "@/components/ui/toast";
 
 import { useSettings, useUpdateSettings } from "@/hooks/apis/useSettings";
 import { UpdateSettingsInput } from "@/types/settings.types";
-
-const settingsSchema = z.object({
-  agencyName: z
-    .string()
-    .trim()
-    .max(100, "Agency name must be 100 characters or less")
-    .optional()
-    .or(z.literal("")),
-
-  agencyEmail: z
-    .string()
-    .trim()
-    .email("Please enter a valid email address")
-    .max(255, "Email must be 255 characters or less")
-    .optional()
-    .or(z.literal("")),
-
-  agencyPhone: z
-    .string()
-    .trim()
-    .max(30, "Phone number must be 30 characters or less")
-    .optional()
-    .or(z.literal("")),
-
-  websiteUrl: z
-    .string()
-    .trim()
-    .url("Please enter a valid website URL")
-    .max(500, "Website URL must be 500 characters or less")
-    .optional()
-    .or(z.literal("")),
-
-  timezone: z
-    .string()
-    .trim()
-    .min(1, "Timezone is required")
-    .max(100, "Timezone must be 100 characters or less"),
-
-  currency: z
-    .string()
-    .trim()
-    .min(3, "Currency must be 3 characters")
-    .max(3, "Currency must be 3 characters")
-    .regex(/^[A-Za-z]{3}$/, "Currency must be a 3-letter code"),
-});
-
-type SettingsFormValues = z.infer<typeof settingsSchema>;
-
-/* -------------------------------------------------------------------------- */
-/*                              Settings Page                                 */
-/* -------------------------------------------------------------------------- */
+import { SettingsFormValues, settingsSchema } from "@/lib/validations";
+import { SettingLoader } from "@/components/features/common/loaders/setting-loader";
+import { SettingError } from "@/components/features/common/errors/setting-error";
+import { PageHeader } from "@/components/features/common/page-header";
 
 const SettingsPage = () => {
   const { data, isLoading, isError } = useSettings();
@@ -165,96 +118,20 @@ const SettingsPage = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="space-y-8">
-        <div>
-          <div className="h-4 w-28 animate-pulse bg-muted" />
-
-          <div className="mt-4 h-9 w-40 animate-pulse bg-muted" />
-
-          <div className="mt-3 h-4 w-80 animate-pulse bg-muted" />
-        </div>
-
-        <div className="border border-border bg-card">
-          <div className="border-b border-border p-5">
-            <div className="h-5 w-32 animate-pulse bg-muted" />
-
-            <div className="mt-2 h-3 w-64 animate-pulse bg-muted" />
-          </div>
-
-          <div className="space-y-8 p-5">
-            {Array.from({ length: 2 }).map((_, sectionIndex) => (
-              <div key={sectionIndex}>
-                <div className="h-4 w-36 animate-pulse bg-muted" />
-
-                <div className="mt-2 h-3 w-64 animate-pulse bg-muted" />
-
-                <div className="my-5 h-px w-full bg-muted" />
-
-                <div className="grid gap-6 md:grid-cols-2">
-                  {Array.from({ length: sectionIndex === 0 ? 4 : 2 }).map(
-                    (_, index) => (
-                      <div key={index} className="space-y-2">
-                        <div className="h-3 w-24 animate-pulse bg-muted" />
-
-                        <div className="h-10 w-full animate-pulse bg-muted/50" />
-                      </div>
-                    ),
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex justify-end border-t border-border p-5">
-            <div className="h-10 w-32 animate-pulse bg-muted" />
-          </div>
-        </div>
-      </div>
-    );
+    return <SettingLoader />;
   }
 
   if (isError || !settings) {
-    return (
-      <div className="space-y-8">
-        <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            Workspace
-          </p>
-
-          <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
-
-          <p className="mt-2 text-sm text-muted-foreground">
-            Manage your agency and workspace preferences.
-          </p>
-        </div>
-
-        <div className="flex min-h-48 flex-col items-center justify-center border border-border bg-card p-6 text-center">
-          <Settings2 className="size-8 text-muted-foreground/50" />
-
-          <p className="mt-4 text-sm font-medium">Unable to load settings</p>
-
-          <p className="mt-1 text-xs text-muted-foreground">
-            Please try refreshing the page.
-          </p>
-        </div>
-      </div>
-    );
+    return <SettingError />;
   }
 
   return (
     <div className="space-y-8">
-      <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-          Workspace
-        </p>
-
-        <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
-
-        <p className="mt-2 text-sm text-muted-foreground">
-          Manage your agency and workspace preferences.
-        </p>
-      </div>
+      <PageHeader
+        title="Workspace"
+        pageName="Settings"
+        subTitle="Manage your agency and workspace preferences."
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="border border-border bg-card">

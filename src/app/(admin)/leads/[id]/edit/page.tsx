@@ -5,7 +5,18 @@ import { useParams, useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { ArrowLeft, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  Save,
+  Building2,
+  Globe,
+  Mail,
+  Phone,
+  RotateCcw,
+  Tag,
+  Trash2,
+  UserRound,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +34,10 @@ import { toast } from "@/components/ui/toast";
 import { useLead, useUpdateLead } from "@/hooks/apis/useLeads";
 import { Lead, UpdateLeadInput } from "@/types/lead.types";
 import { LeadStatus } from "@/types/common.types";
+import ButtonBack from "@/components/common/buttons/button-back";
+import { PageHeader } from "@/components/features/common/page-header";
+import TextField from "@/components/form-elements/text-field";
+import { DetailItem } from "@/components/features/common/detail-item";
 
 const leadStatuses = [
   {
@@ -300,65 +315,47 @@ const EditLeadForm = ({ lead }: EditLeadFormProps) => {
 
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
-              <div>
-                <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  Name
-                </p>
+              <DetailItem
+                icon={<UserRound className="size-4" />}
+                label="Name"
+                value={lead.contact.name}
+              />
 
-                <p className="text-sm font-medium">
-                  {lead.contact.name || "—"}
-                </p>
-              </div>
+              <DetailItem
+                icon={<Building2 className="size-4" />}
+                label="Company"
+                value={lead.contact.company}
+              />
 
-              <div>
-                <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  Company
-                </p>
+              <DetailItem
+                icon={<Mail className="size-4" />}
+                label="Email"
+                value={lead.contact.email}
+                href={`mailto:${lead.contact.email}`}
+              />
 
-                <p className="text-sm font-medium">
-                  {lead.contact.company || "—"}
-                </p>
-              </div>
+              <DetailItem
+                icon={<Phone className="size-4" />}
+                label="Phone"
+                value={lead.contact.phone}
+                href={
+                  lead.contact.phone ? `tel:${lead.contact.phone}` : undefined
+                }
+              />
 
-              <div>
-                <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  Email
-                </p>
+              <DetailItem
+                icon={<Tag className="size-4" />}
+                label="Industry"
+                value={lead.contact.industry}
+              />
 
-                <p className="text-sm font-medium">
-                  {lead.contact.email || "—"}
-                </p>
-              </div>
-
-              <div>
-                <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  Phone
-                </p>
-
-                <p className="text-sm font-medium">
-                  {lead.contact.phone || "—"}
-                </p>
-              </div>
-
-              <div>
-                <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  Industry
-                </p>
-
-                <p className="text-sm font-medium">
-                  {lead.contact.industry || "—"}
-                </p>
-              </div>
-
-              <div>
-                <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  Website
-                </p>
-
-                <p className="text-sm font-medium">
-                  {lead.contact.website || "—"}
-                </p>
-              </div>
+              <DetailItem
+                icon={<Globe className="size-4" />}
+                label="Website"
+                value={lead.contact.website}
+                href={lead.contact.website ?? undefined}
+                external
+              />
             </div>
           </CardContent>
         </Card>
@@ -374,38 +371,21 @@ const EditLeadForm = ({ lead }: EditLeadFormProps) => {
 
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-2">
-                <label
-                  htmlFor="lastContactedAt"
-                  className="text-sm font-medium"
-                >
-                  Last Contacted
-                </label>
+              <TextField
+                name="lastContactedAt"
+                label="Last Contacted"
+                type="datetime-local"
+                register={register("lastContactedAt")}
+                error={errors.lastContactedAt?.message}
+              />
 
-                <Input
-                  id="lastContactedAt"
-                  type="datetime-local"
-                  {...register("lastContactedAt")}
-                  aria-invalid={!!errors.lastContactedAt}
-                />
-
-                <FieldError message={errors.lastContactedAt?.message} />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="nextFollowUpAt" className="text-sm font-medium">
-                  Next Follow Up
-                </label>
-
-                <Input
-                  id="nextFollowUpAt"
-                  type="datetime-local"
-                  {...register("nextFollowUpAt")}
-                  aria-invalid={!!errors.nextFollowUpAt}
-                />
-
-                <FieldError message={errors.nextFollowUpAt?.message} />
-              </div>
+              <TextField
+                name="nextFollowUpAt"
+                label="Next Follow Up"
+                type="datetime-local"
+                register={register("nextFollowUpAt")}
+                error={errors.nextFollowUpAt?.message}
+              />
             </div>
           </CardContent>
         </Card>
@@ -513,29 +493,13 @@ const EditLeadPage = () => {
   return (
     <div className="space-y-8">
       <div>
-        <Link
-          href={`/leads/${lead.id}`}
-          className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" />
-          Back to Lead
-        </Link>
+        <ButtonBack link={`/leads/${lead.id}`} />
 
-        <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            Leads
-          </p>
-
-          <h1 className="text-3xl font-semibold tracking-tight">Edit Lead</h1>
-
-          <p className="mt-2 text-sm text-muted-foreground">
-            Update the lead information for{" "}
-            <span className="font-medium text-foreground">
-              {lead.contact.name}
-            </span>
-            .
-          </p>
-        </div>
+        <PageHeader
+          title="Leads"
+          pageName="Edit Lead"
+          subTitle={`Update the lead information for ${lead.contact.name}.`}
+        />
       </div>
 
       <EditLeadForm key={`${lead.id}-${lead.updatedAt}`} lead={lead} />
