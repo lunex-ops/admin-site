@@ -11,7 +11,7 @@ const ContactsPage = () => {
 
   const contacts = data?.data?.contacts ?? [];
 
-  if (!isLoading) {
+  if (isLoading) {
     return <PageHeaderLoader title="Workspace" pageName="Contacts" />;
   }
 
@@ -24,7 +24,7 @@ const ContactsPage = () => {
       <PageHeader
         title="Workspace"
         pageName="Contacts"
-        subTitle=" Manage and review contacts submitted through your website."
+        subTitle="Manage and review contacts submitted through your website."
       />
 
       {!isLoading && !isError && <ContactsTable data={contacts} />}

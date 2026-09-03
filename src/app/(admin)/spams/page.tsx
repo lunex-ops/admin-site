@@ -1,5 +1,8 @@
 "use client";
 
+import { PageError } from "@/components/features/common/page-error";
+import { PageHeader } from "@/components/features/common/page-header";
+import { PageHeaderLoader } from "@/components/features/common/page-header-loader";
 import { SpamsTable } from "@/components/tables/spams-table";
 import { useSpams } from "@/hooks/apis/useSpams";
 
@@ -8,43 +11,21 @@ const SpamsPage = () => {
 
   const spams = data?.data?.contacts ?? [];
 
+  if (isLoading) {
+    return <PageHeaderLoader title="Workspace" pageName="Spams" />;
+  }
+
+  if (isError) {
+    return <PageError />;
+  }
+
   return (
     <div className="space-y-8">
-      <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-          Workspace
-        </p>
-
-        <h1 className="text-3xl font-semibold tracking-tight">Spam</h1>
-
-        <p className="mt-2 text-sm text-muted-foreground">
-          Review rejected contacts and manage contacts marked as spam.
-        </p>
-      </div>
-
-      {isLoading && (
-        <div className="space-y-4">
-          <div className="h-14 animate-pulse border border-border bg-muted/30" />
-
-          <div className="border border-border bg-card">
-            <div className="divide-y divide-border">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <div key={index} className="h-16 animate-pulse bg-muted/20" />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isError && (
-        <div className="flex min-h-48 flex-col items-center justify-center border border-border bg-card p-6 text-center">
-          <p className="text-sm font-medium">Unable to load spam contacts</p>
-
-          <p className="mt-1 text-xs text-muted-foreground">
-            Please try refreshing the page.
-          </p>
-        </div>
-      )}
+      <PageHeader
+        title="Workspace"
+        pageName="Spams"
+        subTitle="Review rejected contacts and manage contacts marked as spam."
+      />
 
       {!isLoading && !isError && <SpamsTable data={spams} />}
     </div>

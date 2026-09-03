@@ -12,12 +12,12 @@ import { useDashboard } from "@/hooks/apis/useDashboard";
 const DashboardPage = () => {
   const { data, isLoading, isError } = useDashboard();
 
+  const dashboard = data?.data;
+  const overview = dashboard?.overview;
+
   if (isLoading) {
     return <PageHeaderLoader title="Workspace" pageName="Dashboard" />;
   }
-
-  const dashboard = data?.data;
-  const overview = dashboard?.overview;
 
   if (isError || !overview) {
     return <PageError />;
