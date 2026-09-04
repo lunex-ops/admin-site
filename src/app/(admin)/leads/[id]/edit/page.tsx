@@ -1,12 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { z } from "zod";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import {
-  ArrowLeft,
   Save,
   Building2,
   Globe,
@@ -35,44 +33,13 @@ import TextareaField from "@/components/form-elements/text-area-field";
 import SelectField from "@/components/form-elements/select-field";
 
 import { leadStatuses } from "@/lib/data/project-type";
-
-const editLeadSchema = z.object({
-  status: z.enum(["NEW", "CONTACTED", "QUALIFIED", "PROPOSAL", "WON", "LOST"]),
-
-  assignedToId: z.string().nullable().or(z.literal("")),
-
-  estimatedValue: z
-    .string()
-    .trim()
-    .refine(
-      (value) => value === "" || !Number.isNaN(Number(value)),
-      "Estimated value must be a valid number",
-    ),
-
-  lastContactedAt: z.string().nullable().or(z.literal("")),
-
-  nextFollowUpAt: z.string().nullable().or(z.literal("")),
-
-  notes: z.string().trim().nullable().or(z.literal("")),
-});
-
-type EditLeadFormValues = z.infer<typeof editLeadSchema>;
-
-const getDateTimeLocalValue = (value: string | null) => {
-  if (!value) return "";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) return "";
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-};
+import { PageLoader } from "@/components/common/loader/page-loader";
+import {
+  EditLeadFormValues,
+  editLeadSchema,
+} from "@/lib/validations/leads.validation";
+import LeadsError from "@/components/features/leads/leads-error";
+import { getDateTimeLocalValue } from "@/lib/helpers";
 
 const getDefaultValues = (lead: Lead): EditLeadFormValues => ({
   status: lead.status,
@@ -113,12 +80,6 @@ const EditLeadForm = ({ lead }: EditLeadFormProps) => {
     defaultValues: getDefaultValues(lead),
   });
 
-  /*
-   * Build the assignment options from all users.
-   *
-   * "unassigned" is kept as a special option so the lead
-   * can also be unassigned from this page.
-   */
   const assignedToOptions = [
     {
       value: "unassigned",
@@ -400,41 +361,11 @@ const EditLeadPage = () => {
   const lead = data?.data?.lead;
 
   if (isLoading) {
-    return (
-      <div className="space-y-8">
-        <div>
-          <div className="h-4 w-24 animate-pulse bg-muted" />
-          <div className="mt-4 h-9 w-48 animate-pulse bg-muted" />
-          <div className="mt-3 h-4 w-72 animate-pulse bg-muted" />
-        </div>
-
-        <div className="space-y-6">
-          <div className="h-80 animate-pulse border border-border bg-muted/30" />
-          <div className="h-64 animate-pulse border border-border bg-muted/30" />
-          <div className="h-64 animate-pulse border border-border bg-muted/30" />
-        </div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (isError || !lead) {
-    return (
-      <div className="flex min-h-64 flex-col items-center justify-center text-center">
-        <p className="text-sm font-medium">Unable to load lead</p>
-
-        <p className="mt-1 text-xs text-muted-foreground">
-          The lead may no longer exist or could not be loaded.
-        </p>
-
-        <Link
-          href="/leads"
-          className="mt-5 inline-flex items-center gap-2 text-sm font-medium hover:underline"
-        >
-          <ArrowLeft className="size-4" />
-          Back to Leads
-        </Link>
-      </div>
-    );
+    return <LeadsError />;
   }
 
   return (
