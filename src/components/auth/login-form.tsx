@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import axios from "axios";
 
 import { cn } from "@/lib/utils";
 
@@ -32,17 +30,11 @@ import { Input } from "@/components/ui/input";
 
 import { useSignIn } from "@/hooks/apis/useAuth";
 import { useAuth } from "@/context/AuthContext";
-
-const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Please enter a valid email address"),
-
-  password: z.string().min(1, "Password is required"),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { ApiError } from "@/lib/api-error";
+import {
+  LoginFormValues,
+  loginSchema,
+} from "@/lib/validations/auth.validation";
 
 export function LoginForm({
   className,
@@ -78,18 +70,15 @@ export function LoginForm({
         description: "Welcome back!",
       });
 
-      router.push("/dashboard");
-    } catch (error: unknown) {
-      let message = "Unable to sign in. Please try again.";
-
-      if (axios.isAxiosError(error)) {
-        message = error.response?.data?.message ?? message;
-      }
-
+      router.replace("/dashboard");
+    } catch (error) {
       toast.add({
         type: "error",
         title: "Login failed",
-        description: message,
+        description:
+          error instanceof ApiError
+            ? error.message
+            : "Unable to sign in. Please try again.",
       });
     }
   };

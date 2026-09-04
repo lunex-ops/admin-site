@@ -14,10 +14,13 @@ import { toast } from "@/components/ui/toast";
 
 import { useSettings, useUpdateSettings } from "@/hooks/apis/useSettings";
 import { UpdateSettingsInput } from "@/types/settings.types";
-import { SettingsFormValues, settingsSchema } from "@/lib/validations";
 import { SettingLoader } from "@/components/features/common/loaders/setting-loader";
 import { SettingError } from "@/components/features/common/errors/setting-error";
 import { PageHeader } from "@/components/features/common/page-header";
+import {
+  SettingsFormValues,
+  settingsSchema,
+} from "@/lib/validations/settings.validation";
 
 const SettingsPage = () => {
   const { data, isLoading, isError } = useSettings();
@@ -128,8 +131,7 @@ const SettingsPage = () => {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Workspace"
-        pageName="Settings"
+        title="Settings"
         subTitle="Manage your agency and workspace preferences."
       />
 

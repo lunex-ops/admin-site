@@ -13,6 +13,7 @@ import type {
   ResetPasswordParams,
   SignInInput,
 } from "@/types/auth.types";
+import { useAuth } from "@/context/AuthContext";
 
 export const authKeys = {
   all: ["auth"] as const,
@@ -20,14 +21,19 @@ export const authKeys = {
 };
 
 export const useCurrentUser = () => {
+  const { token } = useAuth();
+
   return useQuery<CurrentUserResponse>({
     queryKey: authKeys.currentUser(),
+
     queryFn: async () => {
       const { data } =
         await authenticatedApi.get<CurrentUserResponse>("/auth/me");
 
       return data;
     },
+
+    enabled: Boolean(token),
 
     retry: false,
   });

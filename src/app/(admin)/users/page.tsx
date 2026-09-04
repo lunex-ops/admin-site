@@ -13,7 +13,7 @@ const UsersPage = () => {
   const users = data?.data?.users ?? [];
 
   if (isLoading) {
-    return <PageHeaderLoader title="Workspace" pageName="Users" />;
+    return <PageHeaderLoader title="Users" />;
   }
 
   if (isError) {
@@ -23,12 +23,11 @@ const UsersPage = () => {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Workspace"
-        pageName="Users"
+        title="Users"
         subTitle="Manage users and their access to your workspace."
       />
 
-      {!isLoading && !isError && <UsersTable data={users} />}
+      <UsersTable data={users} />
     </div>
   );
 };

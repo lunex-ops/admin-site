@@ -16,7 +16,7 @@ const DashboardPage = () => {
   const overview = dashboard?.overview;
 
   if (isLoading) {
-    return <PageHeaderLoader title="Workspace" pageName="Dashboard" />;
+    return <PageHeaderLoader title="Dashboard" />;
   }
 
   if (isError || !overview) {
@@ -26,8 +26,7 @@ const DashboardPage = () => {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Workspace"
-        pageName="Dashboard"
+        title="Dashboard"
         subTitle="Welcome back. Here's an overview of your operations."
       />
 

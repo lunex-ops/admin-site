@@ -1,23 +1,23 @@
 interface PageHeaderProps {
   title?: string;
-  pageName?: string;
   subTitle?: string;
+  children?: React.ReactNode;
 }
 
 export const PageHeader = ({
-  title = "Workspace",
-  pageName = "Dashboard",
+  title = "Dashboard",
   subTitle = "Welcome back. Here's an overview of your operations.",
+  children,
 }: PageHeaderProps) => {
   return (
-    <div>
-      <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-        {title}
-      </p>
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
 
-      <h1 className="text-3xl font-semibold tracking-tight">{pageName}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{subTitle}</p>
+      </div>
 
-      <p className="mt-2 text-sm text-muted-foreground">{subTitle}</p>
+      {children && <div className="shrink-0">{children}</div>}
     </div>
   );
 };

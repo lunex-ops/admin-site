@@ -1,13 +1,5 @@
 import type { BaseUser } from "./user.types";
 
-export interface SignUpInput {
-  username: string;
-  email: string;
-  password: string;
-  passwordConfirm: string;
-  photo?: string;
-}
-
 export interface SignInInput {
   email: string;
   password: string;
@@ -23,10 +15,6 @@ export interface ResetPasswordInput {
 }
 
 export interface ResetPasswordParams {
-  token: string;
-}
-
-export interface VerifyEmailInput {
   token: string;
 }
 

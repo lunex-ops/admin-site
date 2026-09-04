@@ -13,7 +13,7 @@ const LeadsPage = () => {
   const leads = data?.data?.leads ?? [];
 
   if (isLoading) {
-    return <PageHeaderLoader title="Workspace" pageName="Leads" />;
+    return <PageHeaderLoader title="Leads" />;
   }
 
   if (isError) {
@@ -23,12 +23,11 @@ const LeadsPage = () => {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Workspace"
-        pageName="Leads"
+        title="Leads"
         subTitle="Manage and track leads converted from your website contacts."
       />
 
-      {!isLoading && !isError && <LeadsTable data={leads} />}
+      <LeadsTable data={leads} />
     </div>
   );
 };

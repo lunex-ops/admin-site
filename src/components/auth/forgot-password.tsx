@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/components/ui/button";
+
 import {
   Card,
   CardContent,
@@ -14,18 +14,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
 import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
 
 import TextField from "../form-elements/text-field";
+
 import { useForgotPassword } from "@/hooks/apis/useAuth";
+
 import { toast } from "../ui/toast";
-import axios from "axios";
 
-const forgotPasswordSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-});
+import {
+  ForgotPasswordFormValues,
+  forgotPasswordSchema,
+} from "@/lib/validations/auth.validation";
 
-type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+import { ApiError } from "@/lib/api-error";
 
 export function ForgotPasswordForm(props: React.ComponentProps<typeof Card>) {
   const { mutate, isPending } = useForgotPassword();
@@ -49,17 +52,15 @@ export function ForgotPasswordForm(props: React.ComponentProps<typeof Card>) {
           description: response.message,
         });
       },
+
       onError: (error) => {
-        let message = "Reset Link NOT Sent. Please try again.";
-
-        if (axios.isAxiosError(error)) {
-          message = error.response?.data?.message ?? message;
-        }
-
         toast.add({
           type: "error",
-          title: "Login failed",
-          description: message,
+          title: "Reset link failed",
+          description:
+            error instanceof ApiError
+              ? error.message
+              : "Unable to send reset link. Please try again.",
         });
       },
     });

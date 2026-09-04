@@ -12,7 +12,7 @@ const SpamsPage = () => {
   const spams = data?.data?.contacts ?? [];
 
   if (isLoading) {
-    return <PageHeaderLoader title="Workspace" pageName="Spams" />;
+    return <PageHeaderLoader title="Spams" />;
   }
 
   if (isError) {
@@ -22,12 +22,11 @@ const SpamsPage = () => {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Workspace"
-        pageName="Spams"
+        title="Spams"
         subTitle="Review rejected contacts and manage contacts marked as spam."
       />
 
-      {!isLoading && !isError && <SpamsTable data={spams} />}
+      <SpamsTable data={spams} />
     </div>
   );
 };
