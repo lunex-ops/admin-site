@@ -39,6 +39,7 @@ export interface Lead {
   notes: string | null;
   createdAt: string;
   updatedAt: string;
+
   contact: LeadContact;
   assignedTo: LeadAssignedUser | null;
 }

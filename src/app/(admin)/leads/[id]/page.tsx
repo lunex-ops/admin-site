@@ -25,6 +25,7 @@ import {
   useLead,
   useUnassignLead,
 } from "@/hooks/apis/useLeads";
+import { useUsers } from "@/hooks/apis/useUsers";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -39,6 +40,8 @@ import {
 } from "@/lib/helpers";
 import ButtonBack from "@/components/common/buttons/button-back";
 import { DetailItem } from "@/components/features/common/detail-item";
+import AssignLeadDialog from "@/components/features/leads/assign-lead-dialog";
+import { PageLoader } from "@/components/common/loader/page-loader";
 
 const LeadDetailsPage = () => {
   const params = useParams();
@@ -48,32 +51,20 @@ const LeadDetailsPage = () => {
 
   const { data, isLoading, isError } = useLead(id);
 
-  const { mutate: assignLead, isPending: isAssigning } = useAssignLead();
+  const assignLead = useAssignLead();
+  const unassignLead = useUnassignLead();
+  const deleteLead = useDeleteLead();
 
-  const { mutate: unassignLead, isPending: isUnassigning } = useUnassignLead();
+  const { data: usersData, isLoading: isUsersLoading } = useUsers();
 
-  const { mutate: deleteLead, isPending: isDeleting } = useDeleteLead();
-
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isUnassignDialogOpen, setIsUnassignDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const lead = data?.data?.lead;
 
   if (isLoading) {
-    return (
-      <div className="space-y-8">
-        <div>
-          <div className="h-4 w-28 animate-pulse bg-muted" />
-          <div className="mt-4 h-9 w-56 animate-pulse bg-muted" />
-          <div className="mt-3 h-4 w-72 animate-pulse bg-muted" />
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="h-64 animate-pulse border border-border bg-muted/30 lg:col-span-2" />
-          <div className="h-64 animate-pulse border border-border bg-muted/30" />
-        </div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (isError || !lead) {
@@ -99,21 +90,26 @@ const LeadDetailsPage = () => {
   }
 
   const contact = lead.contact;
+  const users = usersData?.data?.users ?? [];
 
-  const handleAssign = () => {
-    /*
-     * Assignment UI will be added once we build the user selector.
-     *
-     * The API expects:
-     *
-     * {
-     *   assignedToId: string;
-     * }
-     */
+  const handleAssign = (userId: string) => {
+    assignLead.mutate(
+      {
+        id: lead.id,
+        data: {
+          assignedToId: userId,
+        },
+      },
+      {
+        onSuccess: () => {
+          setIsAssignDialogOpen(false);
+        },
+      },
+    );
   };
 
   const handleUnassign = () => {
-    unassignLead(lead.id, {
+    unassignLead.mutate(lead.id, {
       onSuccess: () => {
         setIsUnassignDialogOpen(false);
       },
@@ -121,7 +117,7 @@ const LeadDetailsPage = () => {
   };
 
   const handleDelete = () => {
-    deleteLead(lead.id, {
+    deleteLead.mutate(lead.id, {
       onSuccess: () => {
         setIsDeleteDialogOpen(false);
         router.push("/leads");
@@ -180,7 +176,11 @@ const LeadDetailsPage = () => {
                 <Button
                   variant="outline"
                   onClick={() => setIsUnassignDialogOpen(true)}
-                  disabled={isUnassigning}
+                  disabled={
+                    unassignLead.isPending ||
+                    assignLead.isPending ||
+                    deleteLead.isPending
+                  }
                 >
                   <UserRoundX className="size-4" />
                   Unassign
@@ -188,8 +188,12 @@ const LeadDetailsPage = () => {
               ) : (
                 <Button
                   variant="outline"
-                  onClick={handleAssign}
-                  disabled={isAssigning}
+                  onClick={() => setIsAssignDialogOpen(true)}
+                  disabled={
+                    assignLead.isPending ||
+                    unassignLead.isPending ||
+                    deleteLead.isPending
+                  }
                 >
                   <UserRoundCheck className="size-4" />
                   Assign
@@ -207,7 +211,11 @@ const LeadDetailsPage = () => {
               <Button
                 variant="outline"
                 onClick={() => setIsDeleteDialogOpen(true)}
-                disabled={isDeleting}
+                disabled={
+                  deleteLead.isPending ||
+                  assignLead.isPending ||
+                  unassignLead.isPending
+                }
                 className="text-destructive hover:text-destructive"
               >
                 <Trash2 className="size-4" />
@@ -481,6 +489,14 @@ const LeadDetailsPage = () => {
         </div>
       </div>
 
+      <AssignLeadDialog
+        open={isAssignDialogOpen}
+        onOpenChange={setIsAssignDialogOpen}
+        users={users}
+        onAssign={handleAssign}
+        isLoading={assignLead.isPending || isUsersLoading}
+      />
+
       <ConfirmationDialog
         open={isUnassignDialogOpen}
         onOpenChange={setIsUnassignDialogOpen}
@@ -492,7 +508,7 @@ const LeadDetailsPage = () => {
         }.`}
         confirmText="Unassign"
         onConfirm={handleUnassign}
-        isLoading={isUnassigning}
+        isLoading={unassignLead.isPending}
       />
 
       <ConfirmationDialog
@@ -502,7 +518,7 @@ const LeadDetailsPage = () => {
         message={`Are you sure you want to permanently delete the lead for ${contact.name}? This action cannot be undone.`}
         confirmText="Delete"
         onConfirm={handleDelete}
-        isLoading={isDeleting}
+        isLoading={deleteLead.isPending}
       />
     </>
   );

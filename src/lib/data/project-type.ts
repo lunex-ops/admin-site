@@ -24,3 +24,30 @@ export const projectTypes = [
     label: "Not Sure",
   },
 ] as const;
+
+export const leadStatuses = [
+  {
+    value: "NEW",
+    label: "New",
+  },
+  {
+    value: "CONTACTED",
+    label: "Contacted",
+  },
+  {
+    value: "QUALIFIED",
+    label: "Qualified",
+  },
+  {
+    value: "PROPOSAL",
+    label: "Proposal",
+  },
+  {
+    value: "WON",
+    label: "Won",
+  },
+  {
+    value: "LOST",
+    label: "Lost",
+  },
+] as const;

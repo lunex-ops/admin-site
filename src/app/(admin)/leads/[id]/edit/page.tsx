@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import {
   ArrowLeft,
   Save,
@@ -12,63 +12,35 @@ import {
   Globe,
   Mail,
   Phone,
-  RotateCcw,
   Tag,
-  Trash2,
   UserRound,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 
 import { useLead, useUpdateLead } from "@/hooks/apis/useLeads";
+import { useUsers } from "@/hooks/apis/useUsers";
+
 import { Lead, UpdateLeadInput } from "@/types/lead.types";
 import { LeadStatus } from "@/types/common.types";
+
 import ButtonBack from "@/components/common/buttons/button-back";
 import { PageHeader } from "@/components/features/common/page-header";
-import TextField from "@/components/form-elements/text-field";
 import { DetailItem } from "@/components/features/common/detail-item";
 
-const leadStatuses = [
-  {
-    value: "NEW",
-    label: "New",
-  },
-  {
-    value: "CONTACTED",
-    label: "Contacted",
-  },
-  {
-    value: "QUALIFIED",
-    label: "Qualified",
-  },
-  {
-    value: "PROPOSAL",
-    label: "Proposal",
-  },
-  {
-    value: "WON",
-    label: "Won",
-  },
-  {
-    value: "LOST",
-    label: "Lost",
-  },
-] as const;
+import TextField from "@/components/form-elements/text-field";
+import TextareaField from "@/components/form-elements/text-area-field";
+import SelectField from "@/components/form-elements/select-field";
+
+import { leadStatuses } from "@/lib/data/project-type";
 
 const editLeadSchema = z.object({
   status: z.enum(["NEW", "CONTACTED", "QUALIFIED", "PROPOSAL", "WON", "LOST"]),
+
   assignedToId: z.string().nullable().or(z.literal("")),
+
   estimatedValue: z
     .string()
     .trim()
@@ -76,8 +48,11 @@ const editLeadSchema = z.object({
       (value) => value === "" || !Number.isNaN(Number(value)),
       "Estimated value must be a valid number",
     ),
+
   lastContactedAt: z.string().nullable().or(z.literal("")),
+
   nextFollowUpAt: z.string().nullable().or(z.literal("")),
+
   notes: z.string().trim().nullable().or(z.literal("")),
 });
 
@@ -102,24 +77,17 @@ const getDateTimeLocalValue = (value: string | null) => {
 const getDefaultValues = (lead: Lead): EditLeadFormValues => ({
   status: lead.status,
   assignedToId: lead.assignedToId ?? "",
+
   estimatedValue:
     lead.estimatedValue !== null && lead.estimatedValue !== undefined
       ? String(lead.estimatedValue)
       : "",
+
   lastContactedAt: getDateTimeLocalValue(lead.lastContactedAt),
   nextFollowUpAt: getDateTimeLocalValue(lead.nextFollowUpAt),
+
   notes: lead.notes ?? "",
 });
-
-interface FieldErrorProps {
-  message?: string;
-}
-
-const FieldError = ({ message }: FieldErrorProps) => {
-  if (!message) return null;
-
-  return <p className="text-xs text-danger">{message}</p>;
-};
 
 interface EditLeadFormProps {
   lead: Lead;
@@ -130,40 +98,67 @@ const EditLeadForm = ({ lead }: EditLeadFormProps) => {
 
   const updateLead = useUpdateLead();
 
+  const { data: usersData, isLoading: isUsersLoading } = useUsers();
+
+  const users = usersData?.data?.users ?? [];
+
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<EditLeadFormValues>({
     resolver: zodResolver(editLeadSchema),
     defaultValues: getDefaultValues(lead),
   });
 
-  const status = watch("status");
-  const assignedToId = watch("assignedToId");
+  /*
+   * Build the assignment options from all users.
+   *
+   * "unassigned" is kept as a special option so the lead
+   * can also be unassigned from this page.
+   */
+  const assignedToOptions = [
+    {
+      value: "unassigned",
+      label: "Unassigned",
+    },
+
+    ...users.map((user) => ({
+      value: user.id,
+      label: user.name || user.username || user.email,
+    })),
+  ];
 
   const handleFormSubmit = (values: EditLeadFormValues) => {
     const payload: UpdateLeadInput = {
       status: values.status as LeadStatus,
-      assignedToId: values.assignedToId || null,
+
+      assignedToId:
+        values.assignedToId && values.assignedToId !== "unassigned"
+          ? values.assignedToId
+          : null,
+
       estimatedValue: values.estimatedValue
         ? Number(values.estimatedValue)
         : null,
+
       lastContactedAt: values.lastContactedAt
         ? new Date(values.lastContactedAt)
         : null,
+
       nextFollowUpAt: values.nextFollowUpAt
         ? new Date(values.nextFollowUpAt)
         : null,
+
       notes: values.notes || null,
     };
 
     updateLead.mutate(
       {
         id: lead.id,
-        payload,
+        data: payload,
       },
       {
         onSuccess: () => {
@@ -174,6 +169,7 @@ const EditLeadForm = ({ lead }: EditLeadFormProps) => {
 
           router.push(`/leads/${lead.id}`);
         },
+
         onError: () => {
           toast.add({
             type: "error",
@@ -200,106 +196,69 @@ const EditLeadForm = ({ lead }: EditLeadFormProps) => {
 
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-2.5">
-                <label htmlFor="status" className="text-sm font-medium">
-                  Status
-                </label>
-
-                <Select
-                  value={status}
-                  onValueChange={(value) =>
-                    setValue("status", value as LeadStatus, {
-                      shouldValidate: true,
-                    })
-                  }
-                >
-                  <SelectTrigger
-                    aria-invalid={!!errors.status}
-                    className="h-11 w-full rounded-md border-border bg-background px-3 text-sm shadow-sm transition-colors hover:border-primary/50 focus:ring-2 focus:ring-primary/20 data-placeholder:text-muted-foreground"
-                  >
-                    <SelectValue placeholder="Choose a status" />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    {leadStatuses.map((item) => (
-                      <SelectItem
-                        key={item.value}
-                        value={item.value}
-                        className="cursor-pointer"
-                      >
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <FieldError message={errors.status?.message} />
-              </div>
-
-              <div className="space-y-2.5">
-                <label htmlFor="assignedToId" className="text-sm font-medium">
-                  Assigned To
-                </label>
-
-                <Select
-                  value={assignedToId || "unassigned"}
-                  onValueChange={(value) =>
-                    setValue(
-                      "assignedToId",
-                      value === "unassigned" ? "" : value,
-                      {
+              <Controller
+                name="status"
+                control={control}
+                render={({ field }) => (
+                  <SelectField
+                    name="status"
+                    label="Status"
+                    placeholder="Choose a status"
+                    options={leadStatuses}
+                    value={field.value}
+                    onValueChange={(value) =>
+                      setValue("status", value as LeadStatus, {
                         shouldValidate: true,
-                      },
-                    )
-                  }
-                >
-                  <SelectTrigger
-                    aria-invalid={!!errors.assignedToId}
-                    className="h-11 w-full rounded-md border-border bg-background px-3 text-sm shadow-sm transition-colors hover:border-primary/50 focus:ring-2 focus:ring-primary/20 data-placeholder:text-muted-foreground"
-                  >
-                    <SelectValue placeholder="Choose an assignee" />
-                  </SelectTrigger>
+                        shouldDirty: true,
+                      })
+                    }
+                    error={errors.status?.message}
+                  />
+                )}
+              />
 
-                  <SelectContent>
-                    <SelectItem value="unassigned" className="cursor-pointer">
-                      Unassigned
-                    </SelectItem>
+              <div>
+                <Controller
+                  name="assignedToId"
+                  control={control}
+                  render={({ field }) => (
+                    <SelectField
+                      name="assignedToId"
+                      label="Assigned To"
+                      placeholder={
+                        isUsersLoading
+                          ? "Loading users..."
+                          : "Choose an assignee"
+                      }
+                      options={assignedToOptions}
+                      value={field.value || "unassigned"}
+                      onValueChange={(value) =>
+                        setValue(
+                          "assignedToId",
+                          value === "unassigned" ? "" : value,
+                          {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          },
+                        )
+                      }
+                      error={errors.assignedToId?.message}
+                    />
+                  )}
+                />
 
-                    {lead.assignedTo && (
-                      <SelectItem
-                        value={lead.assignedTo.id}
-                        className="cursor-pointer"
-                      >
-                        {lead.assignedTo.name || lead.assignedTo.username}
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-
-                <FieldError message={errors.assignedToId?.message} />
-
-                <p className="text-xs text-muted-foreground">
+                <p className="mt-2 text-xs text-muted-foreground">
                   Assignment can also be managed from the lead details page.
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="estimatedValue" className="text-sm font-medium">
-                  Estimated Value
-                </label>
-
-                <Input
-                  id="estimatedValue"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  {...register("estimatedValue")}
-                  placeholder="e.g. 25000"
-                  aria-invalid={!!errors.estimatedValue}
-                />
-
-                <FieldError message={errors.estimatedValue?.message} />
-              </div>
+              <TextField
+                name="estimatedValue"
+                label="Estimated Value"
+                placeholder="e.g. 25000"
+                register={register("estimatedValue")}
+                error={errors.estimatedValue?.message}
+              />
             </div>
           </CardContent>
         </Card>
@@ -400,21 +359,14 @@ const EditLeadForm = ({ lead }: EditLeadFormProps) => {
           </CardHeader>
 
           <CardContent>
-            <div className="space-y-2">
-              <label htmlFor="notes" className="text-sm font-medium">
-                Lead Notes
-              </label>
-
-              <Textarea
-                id="notes"
-                {...register("notes")}
-                rows={7}
-                placeholder="Add notes about this lead..."
-                aria-invalid={!!errors.notes}
-              />
-
-              <FieldError message={errors.notes?.message} />
-            </div>
+            <TextareaField
+              name="notes"
+              label="Lead Notes"
+              placeholder="Add notes about this lead..."
+              rows={5}
+              register={register("notes")}
+              error={errors.notes?.message}
+            />
           </CardContent>
         </Card>
 
@@ -441,7 +393,6 @@ const EditLeadForm = ({ lead }: EditLeadFormProps) => {
 
 const EditLeadPage = () => {
   const params = useParams();
-
   const id = params.id as string;
 
   const { data, isLoading, isError } = useLead(id);
@@ -453,17 +404,13 @@ const EditLeadPage = () => {
       <div className="space-y-8">
         <div>
           <div className="h-4 w-24 animate-pulse bg-muted" />
-
           <div className="mt-4 h-9 w-48 animate-pulse bg-muted" />
-
           <div className="mt-3 h-4 w-72 animate-pulse bg-muted" />
         </div>
 
         <div className="space-y-6">
           <div className="h-80 animate-pulse border border-border bg-muted/30" />
-
           <div className="h-64 animate-pulse border border-border bg-muted/30" />
-
           <div className="h-64 animate-pulse border border-border bg-muted/30" />
         </div>
       </div>
@@ -496,8 +443,7 @@ const EditLeadPage = () => {
         <ButtonBack link={`/leads/${lead.id}`} />
 
         <PageHeader
-          title="Leads"
-          pageName="Edit Lead"
+          title="Edit Lead"
           subTitle={`Update the lead information for ${lead.contact.name}.`}
         />
       </div>

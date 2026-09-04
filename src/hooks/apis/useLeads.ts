@@ -58,12 +58,16 @@ export const useUpdateLead = () => {
     },
 
     onSuccess: (response, variables) => {
-      queryClient.setQueryData(leadKeys.detail(variables.id), {
+      queryClient.setQueryData<LeadResponse>(leadKeys.detail(variables.id), {
         status: response.status,
         data: {
           lead: response.data.lead,
         },
-      } satisfies LeadResponse);
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: leadKeys.detail(variables.id),
+      });
 
       queryClient.invalidateQueries({
         queryKey: leadKeys.lists(),
