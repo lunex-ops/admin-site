@@ -9,6 +9,8 @@ import {
   CreateContactInput,
   UpdateContactMutationVariables,
 } from "@/types/contact.types";
+import { leadKeys } from "./useLeads";
+import { spamKeys } from "./useSpams";
 
 export const contactKeys = {
   all: ["contacts"] as const,
@@ -106,6 +108,10 @@ export const useAcceptContact = () => {
       queryClient.invalidateQueries({
         queryKey: contactKeys.all,
       });
+
+      queryClient.invalidateQueries({
+        queryKey: leadKeys.all,
+      });
     },
   });
 };
@@ -137,6 +143,10 @@ export const useRejectContact = () => {
 
       queryClient.invalidateQueries({
         queryKey: contactKeys.all,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: spamKeys.all,
       });
     },
   });

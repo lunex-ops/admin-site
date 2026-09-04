@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { ArrowLeft, Save } from "lucide-react";
+import { Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +24,7 @@ import {
   EditContactFormValues,
   editContactSchema,
 } from "@/lib/validations/contacts.validation";
+import ContactError from "@/components/features/contacts/contact-error";
 
 const getDefaultValues = (contact: Contact): EditContactFormValues => ({
   name: contact.name,
@@ -157,7 +157,6 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
               <TextField
                 name="industry"
                 label="Industry"
-                type="url"
                 placeholder="e.g. Health & Wellness"
                 register={register("industry")}
                 error={errors.industry?.message}
@@ -276,23 +275,7 @@ const EditContactPage = () => {
   }
 
   if (isError || !contact) {
-    return (
-      <div className="flex min-h-64 flex-col items-center justify-center text-center">
-        <p className="text-sm font-medium">Unable to load contact</p>
-
-        <p className="mt-1 text-xs text-muted-foreground">
-          The contact may no longer exist or could not be loaded.
-        </p>
-
-        <Link
-          href="/contacts"
-          className="mt-5 inline-flex items-center gap-2 text-sm font-medium hover:underline"
-        >
-          <ArrowLeft className="size-4" />
-          Back to Contacts
-        </Link>
-      </div>
-    );
+    return <ContactError />;
   }
 
   return (

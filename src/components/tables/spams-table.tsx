@@ -26,7 +26,7 @@ import { useDeleteSpam, useRestoreSpam } from "@/hooks/apis/useSpams";
 
 import { toast } from "@/components/ui/toast";
 import { Contact } from "@/types/contact.types";
-import { contactStatusStyles, formatDate, formatValue } from "@/lib/helpers";
+import { formatDate, formatValue } from "@/lib/helpers";
 
 const features = tableFeatures({});
 
@@ -95,24 +95,6 @@ const getColumns = (
           {getValue() || "—"}
         </span>
       ),
-    }),
-
-    columnHelper.accessor("status", {
-      header: "Status",
-
-      cell: ({ getValue }) => {
-        const status = getValue();
-
-        return (
-          <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-              contactStatusStyles[status] ?? "bg-muted text-muted-foreground"
-            }`}
-          >
-            {formatValue(status)}
-          </span>
-        );
-      },
     }),
 
     columnHelper.accessor("rejectedAt", {
@@ -245,7 +227,7 @@ export function SpamsTable({ data }: SpamsTableProps) {
     <>
       <div className="w-full overflow-hidden border border-border bg-card">
         <div className="w-full overflow-x-auto">
-          <Table className="min-w-300">
+          <Table className="min-w-275">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>

@@ -1,11 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import {
-  ArrowLeft,
   Building2,
   Globe,
   Mail,
@@ -21,6 +19,9 @@ import { Separator } from "@/components/ui/separator";
 import ConfirmationDialog from "@/components/common/confirmation-dialog";
 
 import { useSpam, useRestoreSpam, useDeleteSpam } from "@/hooks/apis/useSpams";
+
+import { toast } from "@/components/ui/toast";
+
 import {
   contactStatusStyles,
   formatDate,
@@ -28,8 +29,11 @@ import {
   formatValue,
   getInitials,
 } from "@/lib/helpers";
+
 import ButtonBack from "@/components/common/buttons/button-back";
 import { DetailItem } from "@/components/features/common/detail-item";
+import { PageLoader } from "@/components/common/loader/page-loader";
+import { SpamsError } from "@/components/features/spams/spams-error";
 
 const SpamDetailsPage = () => {
   const params = useParams();
@@ -39,9 +43,8 @@ const SpamDetailsPage = () => {
 
   const { data, isLoading, isError } = useSpam(id);
 
-  const { mutate: restoreSpam, isPending: isRestoring } = useRestoreSpam();
-
-  const { mutate: deleteSpam, isPending: isDeleting } = useDeleteSpam();
+  const restoreSpam = useRestoreSpam();
+  const deleteSpam = useDeleteSpam();
 
   const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -49,60 +52,51 @@ const SpamDetailsPage = () => {
   const contact = data?.data?.contact;
 
   if (isLoading) {
-    return (
-      <div className="space-y-8">
-        <div>
-          <div className="h-4 w-28 animate-pulse bg-muted" />
-          <div className="mt-4 h-9 w-56 animate-pulse bg-muted" />
-          <div className="mt-3 h-4 w-72 animate-pulse bg-muted" />
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="h-64 animate-pulse border border-border bg-muted/30 lg:col-span-2" />
-          <div className="h-64 animate-pulse border border-border bg-muted/30" />
-        </div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (isError || !contact) {
-    return (
-      <div className="flex min-h-64 flex-col items-center justify-center text-center">
-        <UserRound className="size-8 text-muted-foreground/50" />
-
-        <p className="mt-4 text-sm font-medium">Unable to load spam contact</p>
-
-        <p className="mt-1 text-xs text-muted-foreground">
-          The spam contact may no longer exist or could not be loaded.
-        </p>
-
-        <Link
-          href="/spams"
-          className="mt-5 inline-flex items-center gap-2 text-sm font-medium hover:underline"
-        >
-          <ArrowLeft className="size-4" />
-          Back to Spams
-        </Link>
-      </div>
-    );
+    return <SpamsError />;
   }
 
   const handleRestore = () => {
-    restoreSpam(contact.id, {
+    restoreSpam.mutate(contact.id, {
       onSuccess: () => {
-        setIsRestoreDialogOpen(false);
+        toast.add({
+          type: "success",
+          description: "Spam contact restored successfully.",
+        });
 
-        router.push(`/spams`);
+        setIsRestoreDialogOpen(false);
+        router.push("/spams");
+      },
+      onError: () => {
+        toast.add({
+          type: "error",
+          description: "Failed to restore spam contact. Please try again.",
+          priority: "high",
+        });
       },
     });
   };
 
   const handleDelete = () => {
-    deleteSpam(contact.id, {
+    deleteSpam.mutate(contact.id, {
       onSuccess: () => {
-        setIsDeleteDialogOpen(false);
+        toast.add({
+          type: "success",
+          description: "Spam contact deleted successfully.",
+        });
 
+        setIsDeleteDialogOpen(false);
         router.push("/spams");
+      },
+      onError: () => {
+        toast.add({
+          type: "error",
+          description: "Failed to delete spam contact. Please try again.",
+          priority: "high",
+        });
       },
     });
   };
@@ -156,7 +150,7 @@ const SpamDetailsPage = () => {
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 onClick={() => setIsRestoreDialogOpen(true)}
-                disabled={isRestoring || isDeleting}
+                disabled={restoreSpam.isPending || deleteSpam.isPending}
               >
                 <RotateCcw className="size-4" />
                 Restore
@@ -165,7 +159,7 @@ const SpamDetailsPage = () => {
               <Button
                 variant="outline"
                 onClick={() => setIsDeleteDialogOpen(true)}
-                disabled={isRestoring || isDeleting}
+                disabled={restoreSpam.isPending || deleteSpam.isPending}
               >
                 <Trash2 className="size-4" />
                 Delete
@@ -393,24 +387,32 @@ const SpamDetailsPage = () => {
 
       <ConfirmationDialog
         open={isRestoreDialogOpen}
-        onOpenChange={setIsRestoreDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && !restoreSpam.isPending) {
+            setIsRestoreDialogOpen(false);
+          }
+        }}
         title="Restore spam contact?"
         message={`Are you sure you want to restore ${contact.name}? This will move the contact back to the contacts list.`}
         confirmText="Restore"
         cancelText="Cancel"
         onConfirm={handleRestore}
-        isLoading={isRestoring}
+        isLoading={restoreSpam.isPending}
       />
 
       <ConfirmationDialog
         open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && !deleteSpam.isPending) {
+            setIsDeleteDialogOpen(false);
+          }
+        }}
         title="Delete spam contact?"
         message={`Are you sure you want to permanently delete ${contact.name}? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
         onConfirm={handleDelete}
-        isLoading={isDeleting}
+        isLoading={deleteSpam.isPending}
       />
     </>
   );
