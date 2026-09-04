@@ -1,4 +1,10 @@
+"use client";
+
 import Link from "next/link";
+
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -8,17 +14,57 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
 
-export function ForgotPasswordForm({
-  ...props
-}: React.ComponentProps<typeof Card>) {
+import TextField from "../form-elements/text-field";
+import { useForgotPassword } from "@/hooks/apis/useAuth";
+import { toast } from "../ui/toast";
+import axios from "axios";
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+
+type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+
+export function ForgotPasswordForm(props: React.ComponentProps<typeof Card>) {
+  const { mutate, isPending } = useForgotPassword();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordFormValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
+  const onSubmit = (data: ForgotPasswordFormValues) => {
+    mutate(data, {
+      onSuccess: (response) => {
+        toast.add({
+          title: "Reset link sent",
+          description: response.message,
+        });
+      },
+      onError: (error) => {
+        let message = "Reset Link NOT Sent. Please try again.";
+
+        if (axios.isAxiosError(error)) {
+          message = error.response?.data?.message ?? message;
+        }
+
+        toast.add({
+          type: "error",
+          title: "Login failed",
+          description: message,
+        });
+      },
+    });
+  };
+
   return (
     <Card className="border-border shadow-none" {...props}>
       <CardHeader className="space-y-2">
@@ -31,35 +77,22 @@ export function ForgotPasswordForm({
       </CardHeader>
 
       <CardContent>
-        <form>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <FieldGroup>
-            {/* Email */}
+            <TextField
+              name="email"
+              label="Email"
+              placeholder="you@example.com"
+              register={register("email")}
+              error={errors.email?.message}
+            />
+
             <Field>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
-
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                autoComplete="email"
-                required
-              />
-
-              <FieldDescription>
-                Enter the email address associated with your Lunex Admin
-                account.
-              </FieldDescription>
-            </Field>
-
-            {/* Submit */}
-            <Field>
-              <Button type="submit" className="w-full">
-                Send Reset Link
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? "Sending..." : "Send Reset Link"}
               </Button>
             </Field>
 
-            {/* Back to Login */}
             <FieldDescription className="text-center">
               Remember your password?{" "}
               <Link

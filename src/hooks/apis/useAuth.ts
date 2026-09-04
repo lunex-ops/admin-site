@@ -10,9 +10,8 @@ import type {
   ForgotPasswordInput,
   MessageResponse,
   ResetPasswordInput,
+  ResetPasswordParams,
   SignInInput,
-  SignUpInput,
-  VerifyEmailInput,
 } from "@/types/auth.types";
 
 export const authKeys = {
@@ -31,19 +30,6 @@ export const useCurrentUser = () => {
     },
 
     retry: false,
-  });
-};
-
-export const useSignUp = () => {
-  return useMutation<AuthResponse, Error, SignUpInput>({
-    mutationFn: async (payload) => {
-      const { data } = await unauthenticatedApi.post<AuthResponse>(
-        "/users/signup",
-        payload,
-      );
-
-      return data;
-    },
   });
 };
 
@@ -75,7 +61,7 @@ export const useForgotPassword = () => {
   return useMutation<MessageResponse, Error, ForgotPasswordInput>({
     mutationFn: async (payload) => {
       const { data } = await unauthenticatedApi.post<MessageResponse>(
-        "/auth/forgot-password",
+        "/users/forgot-password",
         payload,
       );
 
@@ -85,35 +71,21 @@ export const useForgotPassword = () => {
 };
 
 export const useResetPassword = () => {
-  return useMutation<MessageResponse, Error, ResetPasswordInput>({
-    mutationFn: async (payload) => {
-      const { data } = await unauthenticatedApi.post<MessageResponse>(
-        "/auth/reset-password",
-        payload,
+  return useMutation<
+    MessageResponse,
+    Error,
+    ResetPasswordInput & ResetPasswordParams
+  >({
+    mutationFn: async ({ token, password, passwordConfirm }) => {
+      const { data } = await unauthenticatedApi.patch<MessageResponse>(
+        `/users/reset-password/${token}`,
+        {
+          password,
+          passwordConfirm,
+        },
       );
 
       return data;
-    },
-  });
-};
-
-export const useVerifyEmail = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation<MessageResponse, Error, VerifyEmailInput>({
-    mutationFn: async (payload) => {
-      const { data } = await unauthenticatedApi.post<MessageResponse>(
-        "/auth/verify-email",
-        payload,
-      );
-
-      return data;
-    },
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: authKeys.currentUser(),
-      });
     },
   });
 };
@@ -124,7 +96,7 @@ export const useLogout = () => {
   return useMutation<MessageResponse, Error, void>({
     mutationFn: async () => {
       const { data } =
-        await authenticatedApi.post<MessageResponse>("/auth/logout");
+        await authenticatedApi.post<MessageResponse>("/users/logout");
 
       return data;
     },

@@ -1,4 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -8,17 +15,88 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
+import TextField from "../form-elements/text-field";
+import { useResetPassword } from "@/hooks/apis/useAuth";
+import { toast } from "../ui/toast";
 
-export function ResetPasswordForm({
-  ...props
-}: React.ComponentProps<typeof Card>) {
+const resetPasswordSchema = z
+  .object({
+    password: z.string().min(8, "Password must be at least 8 characters long"),
+
+    passwordConfirm: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: "Passwords do not match",
+    path: ["passwordConfirm"],
+  });
+
+type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+
+export function ResetPasswordForm(props: React.ComponentProps<typeof Card>) {
+  const params = useParams();
+  const router = useRouter();
+
+  const token = params.token as string;
+
+  const { mutate, isPending } = useResetPassword();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      password: "",
+      passwordConfirm: "",
+    },
+  });
+
+  const onSubmit = (data: ResetPasswordFormValues) => {
+    if (!token) {
+      toast.add({
+        type: "error",
+        title: "Invalid reset link",
+        description: "The password reset link is invalid.",
+      });
+
+      return;
+    }
+
+    mutate(
+      {
+        token,
+        password: data.password,
+        passwordConfirm: data.passwordConfirm,
+      },
+      {
+        onSuccess: (response) => {
+          toast.add({
+            title: "Password reset successful",
+            description: response.message,
+          });
+
+          router.push("/password-reset-success");
+        },
+
+        onError: (error) => {
+          let message = "Unable to reset your password. Please try again.";
+
+          if (axios.isAxiosError(error)) {
+            message = error.response?.data?.message ?? message;
+          }
+
+          toast.add({
+            type: "error",
+            title: "Password reset failed",
+            description: message,
+          });
+        },
+      },
+    );
+  };
+
   return (
     <Card className="border-border shadow-none" {...props}>
       <CardHeader className="space-y-2">
@@ -30,54 +108,38 @@ export function ResetPasswordForm({
       </CardHeader>
 
       <CardContent>
-        <form>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <FieldGroup>
-            {/* New Password */}
+            <TextField
+              name="password"
+              label="New Password"
+              placeholder="Enter your new password"
+              type="password"
+              // autoComplete="new-password"
+              register={register("password")}
+              error={errors.password?.message}
+            />
+
+            <TextField
+              name="passwordConfirm"
+              label="Confirm Password"
+              placeholder="Confirm your new password"
+              type="password"
+              // autoComplete="new-password"
+              register={register("passwordConfirm")}
+              error={errors.passwordConfirm?.message}
+            />
+
+            <FieldDescription>
+              Your password must be at least 8 characters long.
+            </FieldDescription>
+
             <Field>
-              <FieldLabel htmlFor="password">New Password</FieldLabel>
-
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter your new password"
-                autoComplete="new-password"
-                required
-              />
-
-              <FieldDescription>
-                Your password must be at least 8 characters long.
-              </FieldDescription>
-            </Field>
-
-            {/* Confirm Password */}
-            <Field>
-              <FieldLabel htmlFor="confirm-password">
-                Confirm Password
-              </FieldLabel>
-
-              <Input
-                id="confirm-password"
-                name="confirmPassword"
-                type="password"
-                placeholder="Confirm your new password"
-                autoComplete="new-password"
-                required
-              />
-
-              <FieldDescription>
-                Enter the same password again to confirm.
-              </FieldDescription>
-            </Field>
-
-            {/* Submit */}
-            <Field>
-              <Button type="submit" className="w-full">
-                Reset Password
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? "Resetting..." : "Reset Password"}
               </Button>
             </Field>
 
-            {/* Back to Login */}
             <FieldDescription className="text-center">
               Remember your password?{" "}
               <Link

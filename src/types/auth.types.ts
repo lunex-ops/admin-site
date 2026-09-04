@@ -20,6 +20,9 @@ export interface ForgotPasswordInput {
 export interface ResetPasswordInput {
   password: string;
   passwordConfirm: string;
+}
+
+export interface ResetPasswordParams {
   token: string;
 }
 

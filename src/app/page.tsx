@@ -10,11 +10,11 @@ const HomePage = () => {
           </p>
 
           <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            Welcome back.
+            Welcome
           </h1>
 
           <p className="mt-4 text-sm leading-6 text-muted-foreground">
-            Manage your leads, clients, projects, and operations from one place.
+            Manage your leads, projects, and operations from one place.
           </p>
         </div>
 
