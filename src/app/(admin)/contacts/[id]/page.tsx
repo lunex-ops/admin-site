@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 
 import {
-  ArrowLeft,
   Building2,
   Check,
   CheckCircle2,
@@ -38,6 +37,8 @@ import {
 } from "@/lib/helpers";
 import ButtonBack from "@/components/common/buttons/button-back";
 import { DetailItem } from "@/components/features/common/detail-item";
+import { PageLoader } from "@/components/common/loader/page-loader";
+import ContactError from "@/components/features/contacts/contact-error";
 
 const ContactDetailsPage = () => {
   const params = useParams();
@@ -55,42 +56,11 @@ const ContactDetailsPage = () => {
   const contact = data?.data?.contact;
 
   if (isLoading) {
-    return (
-      <div className="space-y-8">
-        <div>
-          <div className="h-4 w-28 animate-pulse bg-muted" />
-          <div className="mt-4 h-9 w-56 animate-pulse bg-muted" />
-          <div className="mt-3 h-4 w-72 animate-pulse bg-muted" />
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="h-64 animate-pulse border border-border bg-muted/30 lg:col-span-2" />
-          <div className="h-64 animate-pulse border border-border bg-muted/30" />
-        </div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (isError || !contact) {
-    return (
-      <div className="flex min-h-64 flex-col items-center justify-center text-center">
-        <UserRound className="size-8 text-muted-foreground/50" />
-
-        <p className="mt-4 text-sm font-medium">Unable to load contact</p>
-
-        <p className="mt-1 text-xs text-muted-foreground">
-          The contact may no longer exist or could not be loaded.
-        </p>
-
-        <Link
-          href="/contacts"
-          className="mt-5 inline-flex items-center gap-2 text-sm font-medium hover:underline"
-        >
-          <ArrowLeft className="size-4" />
-          Back to Contacts
-        </Link>
-      </div>
-    );
+    return <ContactError />;
   }
 
   const handleAccept = () => {

@@ -2,95 +2,29 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { ArrowLeft, Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 
 import { toast } from "@/components/ui/toast";
 
 import { useContact, useUpdateContact } from "@/hooks/apis/useContacts";
 import { Contact, UpdateContactInput } from "@/types/contact.types";
 import { ProjectType } from "@/types/common.types";
-import { FieldError } from "@/components/form-elements/field-error";
 import TextField from "@/components/form-elements/text-field";
 import ButtonBack from "@/components/common/buttons/button-back";
 import { PageHeader } from "@/components/features/common/page-header";
-
-const projectTypes = [
-  {
-    value: "WEBSITE",
-    label: "Website",
-  },
-  {
-    value: "WEB_APPLICATION",
-    label: "Web Application",
-  },
-  {
-    value: "SAAS_MVP",
-    label: "SaaS / MVP",
-  },
-  {
-    value: "EXISTING_PRODUCT",
-    label: "Existing Product",
-  },
-  {
-    value: "ONGOING_DEVELOPMENT",
-    label: "Ongoing Development",
-  },
-  {
-    value: "NOT_SURE",
-    label: "Not Sure",
-  },
-] as const;
-
-const editContactSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-
-  company: z.string().trim().nullable().or(z.literal("")),
-
-  email: z
-    .string()
-    .trim()
-    .min(1, "Email is required")
-    .email("Enter a valid email address"),
-
-  phone: z.string().trim().nullable().or(z.literal("")),
-
-  website: z.string().trim().url("Enter a valid website URL").or(z.literal("")),
-
-  industry: z.string().trim().nullable().or(z.literal("")),
-
-  projectType: z.enum([
-    "WEBSITE",
-    "WEB_APPLICATION",
-    "SAAS_MVP",
-    "EXISTING_PRODUCT",
-    "ONGOING_DEVELOPMENT",
-    "NOT_SURE",
-  ]),
-
-  budget: z.string().trim().nullable().or(z.literal("")),
-
-  timeline: z.string().trim().nullable().or(z.literal("")),
-
-  projectDetails: z.string().trim().min(1, "Project details are required"),
-
-  referral: z.string().trim().nullable().or(z.literal("")),
-});
-
-type EditContactFormValues = z.infer<typeof editContactSchema>;
+import { PageLoader } from "@/components/common/loader/page-loader";
+import SelectField from "@/components/form-elements/select-field";
+import TextareaField from "@/components/form-elements/text-area-field";
+import { projectTypes } from "@/lib/data/project-type";
+import {
+  EditContactFormValues,
+  editContactSchema,
+} from "@/lib/validations/contacts.validation";
 
 const getDefaultValues = (contact: Contact): EditContactFormValues => ({
   name: contact.name,
@@ -117,15 +51,12 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<EditContactFormValues>({
     resolver: zodResolver(editContactSchema),
     defaultValues: getDefaultValues(contact),
   });
-
-  const projectType = watch("projectType");
 
   const handleFormSubmit = (values: EditContactFormValues) => {
     const payload: UpdateContactInput = {
@@ -246,41 +177,21 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
 
           <CardContent className="space-y-6">
             <div className="grid gap-6 md:grid-cols-3">
-              <div className="space-y-2.5">
-                <label htmlFor="budget" className="text-sm font-medium">
-                  Project Type
-                </label>
-
-                <Select
-                  value={projectType}
-                  onValueChange={(value) =>
-                    setValue("projectType", value as ProjectType, {
-                      shouldValidate: true,
-                    })
-                  }
-                >
-                  <SelectTrigger
-                    aria-invalid={!!errors.projectType}
-                    className="h-11 w-full rounded-md border-border bg-background px-3 text-sm shadow-sm transition-colors hover:border-primary/50 focus:ring-2 focus:ring-primary/20 data-placeholder:text-muted-foreground"
-                  >
-                    <SelectValue placeholder="Choose a project type" />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    {projectTypes.map((type) => (
-                      <SelectItem
-                        key={type.value}
-                        value={type.value}
-                        className="cursor-pointer"
-                      >
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <FieldError message={errors.projectType?.message} />
-              </div>
+              <Controller
+                name="projectType"
+                control={control}
+                render={({ field }) => (
+                  <SelectField
+                    name="projectType"
+                    label="Project Type"
+                    placeholder="Choose a project type"
+                    options={projectTypes}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.projectType?.message}
+                  />
+                )}
+              />
 
               <TextField
                 name="budget"
@@ -299,21 +210,14 @@ const EditContactForm = ({ contact }: EditContactFormProps) => {
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="projectDetails" className="text-sm font-medium">
-                Project Details
-              </label>
-
-              <Textarea
-                id="projectDetails"
-                {...register("projectDetails")}
-                rows={7}
-                placeholder="Describe the project requirements..."
-                aria-invalid={!!errors.projectDetails}
-              />
-
-              <FieldError message={errors.projectDetails?.message} />
-            </div>
+            <TextareaField
+              name="projectDetails"
+              label="Project Details"
+              placeholder="Tell us about your project..."
+              rows={5}
+              register={register("projectDetails")}
+              error={errors.projectDetails?.message}
+            />
           </CardContent>
         </Card>
 
@@ -368,23 +272,7 @@ const EditContactPage = () => {
   const contact = data?.data?.contact;
 
   if (isLoading) {
-    return (
-      <div className="space-y-8">
-        <div>
-          <div className="h-4 w-24 animate-pulse bg-muted" />
-
-          <div className="mt-4 h-9 w-48 animate-pulse bg-muted" />
-
-          <div className="mt-3 h-4 w-72 animate-pulse bg-muted" />
-        </div>
-
-        <div className="space-y-6">
-          <div className="h-96 animate-pulse border border-border bg-muted/30" />
-
-          <div className="h-80 animate-pulse border border-border bg-muted/30" />
-        </div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (isError || !contact) {
@@ -413,8 +301,7 @@ const EditContactPage = () => {
         <ButtonBack link={`/contacts/${contact.id}`} />
 
         <PageHeader
-          title="Contacts"
-          pageName="Edit Contact"
+          title="Edit Contact"
           subTitle={`Update the information for ${contact.name}.`}
         />
       </div>
